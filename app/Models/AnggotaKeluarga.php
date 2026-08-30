@@ -16,6 +16,7 @@ class AnggotaKeluarga extends Model
         'jenis_kelamin',
         'tanggal_lahir',
         'status_hubungan',
+        'status_kawin',
         'domisili',
         'role',
     ];

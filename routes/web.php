@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DataWargaController;
 use App\Http\Controllers\KartuKeluargaController;
+use App\Http\Controllers\PemilihPemiluController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,13 +28,18 @@ Route::middleware('auth')->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Data Warga
+    Route::get('/data-warga', [DataWargaController::class, 'index'])->name('data-warga');
+
+    // Pemilih Pemilu
+    Route::get('/pemilih-pemilu', [PemilihPemiluController::class, 'index'])->name('pemilih-pemilu');
+
     // Kartu Keluarga CRUD
     Route::resource('kartu-keluarga', KartuKeluargaController::class);
 
     // All Menu Pages
     $pages = [
         // Kependudukan
-        'data-warga',
         'penduduk-pindah',
 
         // Keuangan
