@@ -13,6 +13,7 @@ use App\Http\Controllers\ArisanController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\RencanaPembelianController;
 use App\Http\Controllers\PeminjamanBarangController;
+use App\Http\Controllers\UMKMController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -114,6 +115,16 @@ Route::middleware('auth')->group(function () {
     Route::get('peminjaman/{peminjaman}', [PeminjamanBarangController::class, 'show'])->name('peminjaman.show');
     Route::patch('peminjaman/{peminjaman}/kembalikan', [PeminjamanBarangController::class, 'kembalikan'])->name('peminjaman.kembalikan');
     Route::delete('peminjaman/{peminjaman}', [PeminjamanBarangController::class, 'destroy'])->name('peminjaman.destroy');
+
+    // UMKM
+    Route::get('umkm', [UMKMController::class, 'index'])->name('umkm.index');
+    Route::get('umkm/create', [UMKMController::class, 'create'])->name('umkm.create');
+    Route::get('umkm/daftarkan', [UMKMController::class, 'daftarkan'])->name('umkm.daftarkan');
+    Route::post('umkm', [UMKMController::class, 'store'])->name('umkm.store');
+    Route::post('umkm/daftarkan', [UMKMController::class, 'storeDaftarkan'])->name('umkm.store-daftarkan');
+    Route::get('umkm/{umkm}/edit', [UMKMController::class, 'edit'])->name('umkm.edit');
+    Route::put('umkm/{umkm}', [UMKMController::class, 'update'])->name('umkm.update');
+    Route::delete('umkm/{umkm}', [UMKMController::class, 'destroy'])->name('umkm.destroy');
 
     // All Menu Pages
     $pages = [

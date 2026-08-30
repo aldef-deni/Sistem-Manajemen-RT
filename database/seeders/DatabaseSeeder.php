@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             ArisanSeeder::class,
             BarangSeeder::class,
             PeminjamanSeeder::class,
+            UMKMSeeder::class,
         ]);
     }
 }
