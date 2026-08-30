@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             KartuKeluargaSeeder::class,
             IuranWargaSeeder::class,
+            KasRTSeeder::class,
         ]);
     }
 }

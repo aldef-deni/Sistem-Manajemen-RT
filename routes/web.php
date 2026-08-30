@@ -6,6 +6,7 @@ use App\Http\Controllers\DataWargaController;
 use App\Http\Controllers\IuranWargaController;
 use App\Http\Controllers\KartuKeluargaController;
 use App\Http\Controllers\PemilihPemiluController;
+use App\Http\Controllers\KasRTController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -43,11 +44,20 @@ Route::middleware('auth')->group(function () {
     Route::patch('iuran-warga/{iuran_warga}/bayar', [IuranWargaController::class, 'bayar'])->name('iuran-warga.bayar');
     Route::post('iuran-warga/bayar-massal', [IuranWargaController::class, 'bayarMassal'])->name('iuran-warga.bayar-massal');
 
+    // Kas RT
+    Route::get('kas-rt', [KasRTController::class, 'index'])->name('kas-rt.index');
+    Route::get('kas-rt/pemasukan', [KasRTController::class, 'pemasukan'])->name('kas-rt.pemasukan');
+    Route::post('kas-rt/pemasukan', [KasRTController::class, 'storePemasukan'])->name('kas-rt.store-pemasukan');
+    Route::get('kas-rt/pengeluaran', [KasRTController::class, 'pengeluaran'])->name('kas-rt.pengeluaran');
+    Route::post('kas-rt/pengeluaran', [KasRTController::class, 'storePengeluaran'])->name('kas-rt.store-pengeluaran');
+    Route::delete('kas-rt/{transaksi}', [KasRTController::class, 'destroy'])->name('kas-rt.destroy');
+
     // All Menu Pages
     $pages = [
         // Kependudukan
         'penduduk-pindah',
-        'kas-rt',
+        'tabungan',
+        'pinjaman',
         'pembayaran',
         'laporan-keuangan',
         'arisan-rt',
