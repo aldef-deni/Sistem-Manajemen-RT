@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataWargaController;
+use App\Http\Controllers\IuranWargaController;
 use App\Http\Controllers\KartuKeluargaController;
 use App\Http\Controllers\PemilihPemiluController;
 use App\Http\Controllers\PageController;
@@ -37,13 +38,15 @@ Route::middleware('auth')->group(function () {
     // Kartu Keluarga CRUD
     Route::resource('kartu-keluarga', KartuKeluargaController::class);
 
+    // Iuran Warga CRUD
+    Route::resource('iuran-warga', IuranWargaController::class)->except(['show']);
+    Route::patch('iuran-warga/{iuran_warga}/bayar', [IuranWargaController::class, 'bayar'])->name('iuran-warga.bayar');
+    Route::post('iuran-warga/bayar-massal', [IuranWargaController::class, 'bayarMassal'])->name('iuran-warga.bayar-massal');
+
     // All Menu Pages
     $pages = [
         // Kependudukan
         'penduduk-pindah',
-
-        // Keuangan
-        'iuran-warga',
         'kas-rt',
         'pembayaran',
         'laporan-keuangan',
