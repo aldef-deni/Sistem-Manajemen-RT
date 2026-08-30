@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
             KartuKeluargaSeeder::class,
             IuranWargaSeeder::class,
             KasRTSeeder::class,
+            TabunganSeeder::class,
+            PinjamanSeeder::class,
         ]);
     }
 }

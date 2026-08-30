@@ -32,4 +32,9 @@ class AnggotaKeluarga extends Model
     {
         return $this->belongsTo(KartuKeluarga::class);
     }
+
+    public function tabungan()
+    {
+        return $this->hasOne(Tabungan::class);
+    }
 }

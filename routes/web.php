@@ -7,6 +7,8 @@ use App\Http\Controllers\IuranWargaController;
 use App\Http\Controllers\KartuKeluargaController;
 use App\Http\Controllers\PemilihPemiluController;
 use App\Http\Controllers\KasRTController;
+use App\Http\Controllers\TabunganController;
+use App\Http\Controllers\PinjamanController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -52,12 +54,29 @@ Route::middleware('auth')->group(function () {
     Route::post('kas-rt/pengeluaran', [KasRTController::class, 'storePengeluaran'])->name('kas-rt.store-pengeluaran');
     Route::delete('kas-rt/{transaksi}', [KasRTController::class, 'destroy'])->name('kas-rt.destroy');
 
+    // Tabungan
+    Route::get('tabungan', [TabunganController::class, 'index'])->name('tabungan.index');
+    Route::get('tabungan/setoran', [TabunganController::class, 'setoran'])->name('tabungan.setoran');
+    Route::post('tabungan/setoran', [TabunganController::class, 'storeSetoran'])->name('tabungan.store-setoran');
+    Route::get('tabungan/penarikan', [TabunganController::class, 'penarikan'])->name('tabungan.penarikan');
+    Route::post('tabungan/penarikan', [TabunganController::class, 'storePenarikan'])->name('tabungan.store-penarikan');
+    Route::get('tabungan/get-saldo', [TabunganController::class, 'getSaldo'])->name('tabungan.get-saldo');
+    Route::get('tabungan/{tabungan}', [TabunganController::class, 'show'])->name('tabungan.show');
+
+    // Pinjaman
+    Route::get('pinjaman', [PinjamanController::class, 'index'])->name('pinjaman.index');
+    Route::get('pinjaman/jenis', [PinjamanController::class, 'jenisIndex'])->name('pinjaman.jenis');
+    Route::post('pinjaman/jenis', [PinjamanController::class, 'jenisStore'])->name('pinjaman.jenis.store');
+    Route::put('pinjaman/jenis/{jenisPinjaman}', [PinjamanController::class, 'jenisUpdate'])->name('pinjaman.jenis.update');
+    Route::delete('pinjaman/jenis/{jenisPinjaman}', [PinjamanController::class, 'jenisDestroy'])->name('pinjaman.jenis.destroy');
+    Route::get('pinjaman/ajukan', [PinjamanController::class, 'ajukan'])->name('pinjaman.ajukan');
+    Route::post('pinjaman/ajukan', [PinjamanController::class, 'storeAjukan'])->name('pinjaman.store-ajukan');
+    Route::get('pinjaman/get-jenis', [PinjamanController::class, 'getJenis'])->name('pinjaman.get-jenis');
+
     // All Menu Pages
     $pages = [
         // Kependudukan
         'penduduk-pindah',
-        'tabungan',
-        'pinjaman',
         'pembayaran',
         'laporan-keuangan',
         'arisan-rt',
