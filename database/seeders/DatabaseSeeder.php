@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             PinjamanSeeder::class,
             ArisanSeeder::class,
             BarangSeeder::class,
+            PeminjamanSeeder::class,
         ]);
     }
 }

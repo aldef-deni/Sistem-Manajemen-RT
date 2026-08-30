@@ -12,6 +12,7 @@ use App\Http\Controllers\PinjamanController;
 use App\Http\Controllers\ArisanController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\RencanaPembelianController;
+use App\Http\Controllers\PeminjamanBarangController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -105,6 +106,14 @@ Route::middleware('auth')->group(function () {
     Route::post('barang/rencana', [RencanaPembelianController::class, 'store'])->name('barang.rencana.store');
     Route::patch('barang/rencana/{rencana}/status', [RencanaPembelianController::class, 'updateStatus'])->name('barang.rencana.update-status');
     Route::delete('barang/rencana/{rencana}', [RencanaPembelianController::class, 'destroy'])->name('barang.rencana.destroy');
+
+    // Peminjaman Barang
+    Route::get('peminjaman', [PeminjamanBarangController::class, 'index'])->name('peminjaman.index');
+    Route::get('peminjaman/create', [PeminjamanBarangController::class, 'create'])->name('peminjaman.create');
+    Route::post('peminjaman', [PeminjamanBarangController::class, 'store'])->name('peminjaman.store');
+    Route::get('peminjaman/{peminjaman}', [PeminjamanBarangController::class, 'show'])->name('peminjaman.show');
+    Route::patch('peminjaman/{peminjaman}/kembalikan', [PeminjamanBarangController::class, 'kembalikan'])->name('peminjaman.kembalikan');
+    Route::delete('peminjaman/{peminjaman}', [PeminjamanBarangController::class, 'destroy'])->name('peminjaman.destroy');
 
     // All Menu Pages
     $pages = [
