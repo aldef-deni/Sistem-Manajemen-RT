@@ -10,6 +10,8 @@ use App\Http\Controllers\KasRTController;
 use App\Http\Controllers\TabunganController;
 use App\Http\Controllers\PinjamanController;
 use App\Http\Controllers\ArisanController;
+use App\Http\Controllers\BarangController;
+use App\Http\Controllers\RencanaPembelianController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -87,15 +89,29 @@ Route::middleware('auth')->group(function () {
     Route::post('arisan/{arisan}/undian', [ArisanController::class, 'undian'])->name('arisan.undian');
     Route::post('arisan/{arisan}/iuran', [ArisanController::class, 'bayarIuran'])->name('arisan.iuran.bayar');
 
+    // Inventaris
+    Route::get('barang', [BarangController::class, 'index'])->name('barang.index');
+    Route::get('barang/create', [BarangController::class, 'create'])->name('barang.create');
+    Route::post('barang', [BarangController::class, 'store'])->name('barang.store');
+    Route::get('barang/{barang}', [BarangController::class, 'show'])->name('barang.show');
+    Route::get('barang/{barang}/edit', [BarangController::class, 'edit'])->name('barang.edit');
+    Route::put('barang/{barang}', [BarangController::class, 'update'])->name('barang.update');
+    Route::delete('barang/{barang}', [BarangController::class, 'destroy'])->name('barang.destroy');
+    Route::get('barang/get-kode', [BarangController::class, 'getKode'])->name('barang.get-kode');
+
+    // Rencana Pembelian
+    Route::get('barang/rencana/list', [RencanaPembelianController::class, 'index'])->name('barang.rencana.index');
+    Route::get('barang/rencana/create', [RencanaPembelianController::class, 'create'])->name('barang.rencana.create');
+    Route::post('barang/rencana', [RencanaPembelianController::class, 'store'])->name('barang.rencana.store');
+    Route::patch('barang/rencana/{rencana}/status', [RencanaPembelianController::class, 'updateStatus'])->name('barang.rencana.update-status');
+    Route::delete('barang/rencana/{rencana}', [RencanaPembelianController::class, 'destroy'])->name('barang.rencana.destroy');
+
     // All Menu Pages
     $pages = [
         // Kependudukan
         'penduduk-pindah',
         'pembayaran',
         'laporan-keuangan',
-
-        // Inventaris
-        'data-barang',
 
         // Dokumentasi
         'layanan-warga',

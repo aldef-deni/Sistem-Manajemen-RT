@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             TabunganSeeder::class,
             PinjamanSeeder::class,
             ArisanSeeder::class,
+            BarangSeeder::class,
         ]);
     }
 }
