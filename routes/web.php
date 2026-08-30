@@ -9,6 +9,7 @@ use App\Http\Controllers\PemilihPemiluController;
 use App\Http\Controllers\KasRTController;
 use App\Http\Controllers\TabunganController;
 use App\Http\Controllers\PinjamanController;
+use App\Http\Controllers\ArisanController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -73,13 +74,25 @@ Route::middleware('auth')->group(function () {
     Route::post('pinjaman/ajukan', [PinjamanController::class, 'storeAjukan'])->name('pinjaman.store-ajukan');
     Route::get('pinjaman/get-jenis', [PinjamanController::class, 'getJenis'])->name('pinjaman.get-jenis');
 
+    // Arisan RT
+    Route::get('arisan', [ArisanController::class, 'index'])->name('arisan.index');
+    Route::get('arisan/create', [ArisanController::class, 'create'])->name('arisan.create');
+    Route::post('arisan', [ArisanController::class, 'store'])->name('arisan.store');
+    Route::get('arisan/{arisan}', [ArisanController::class, 'show'])->name('arisan.show');
+    Route::get('arisan/{arisan}/edit', [ArisanController::class, 'edit'])->name('arisan.edit');
+    Route::put('arisan/{arisan}', [ArisanController::class, 'update'])->name('arisan.update');
+    Route::delete('arisan/{arisan}', [ArisanController::class, 'destroy'])->name('arisan.destroy');
+    Route::post('arisan/{arisan}/peserta', [ArisanController::class, 'tambahPeserta'])->name('arisan.peserta.tambah');
+    Route::delete('arisan/{arisan}/peserta/{peserta}', [ArisanController::class, 'hapusPeserta'])->name('arisan.peserta.hapus');
+    Route::post('arisan/{arisan}/undian', [ArisanController::class, 'undian'])->name('arisan.undian');
+    Route::post('arisan/{arisan}/iuran', [ArisanController::class, 'bayarIuran'])->name('arisan.iuran.bayar');
+
     // All Menu Pages
     $pages = [
         // Kependudukan
         'penduduk-pindah',
         'pembayaran',
         'laporan-keuangan',
-        'arisan-rt',
 
         // Inventaris
         'data-barang',

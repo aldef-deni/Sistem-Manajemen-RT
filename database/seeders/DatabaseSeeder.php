@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             KasRTSeeder::class,
             TabunganSeeder::class,
             PinjamanSeeder::class,
+            ArisanSeeder::class,
         ]);
     }
 }
