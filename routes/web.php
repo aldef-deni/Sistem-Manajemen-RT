@@ -15,6 +15,7 @@ use App\Http\Controllers\RencanaPembelianController;
 use App\Http\Controllers\PeminjamanBarangController;
 use App\Http\Controllers\UMKMController;
 use App\Http\Controllers\BantuanSosialController;
+use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -140,6 +141,16 @@ Route::middleware('auth')->group(function () {
     Route::get('umkm/{umkm}/edit', [UMKMController::class, 'edit'])->name('umkm.edit');
     Route::put('umkm/{umkm}', [UMKMController::class, 'update'])->name('umkm.update');
     Route::delete('umkm/{umkm}', [UMKMController::class, 'destroy'])->name('umkm.destroy');
+
+    // E-Visitor
+    Route::get('visitor', [VisitorController::class, 'index'])->name('visitor.index');
+    Route::get('visitor/create', [VisitorController::class, 'create'])->name('visitor.create');
+    Route::post('visitor', [VisitorController::class, 'store'])->name('visitor.store');
+    Route::get('visitor/{visitor}', [VisitorController::class, 'show'])->name('visitor.show');
+    Route::get('visitor/{visitor}/edit', [VisitorController::class, 'edit'])->name('visitor.edit');
+    Route::put('visitor/{visitor}', [VisitorController::class, 'update'])->name('visitor.update');
+    Route::delete('visitor/{visitor}', [VisitorController::class, 'destroy'])->name('visitor.destroy');
+    Route::patch('visitor/{visitor}/checkout', [VisitorController::class, 'checkout'])->name('visitor.checkout');
 
     // All Menu Pages
     $pages = [

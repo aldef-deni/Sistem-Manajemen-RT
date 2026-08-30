@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             PeminjamanSeeder::class,
             UMKMSeeder::class,
             BantuanSosialSeeder::class,
+            VisitorSeeder::class,
         ]);
     }
 }
