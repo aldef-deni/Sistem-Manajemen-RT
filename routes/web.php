@@ -14,6 +14,7 @@ use App\Http\Controllers\BarangController;
 use App\Http\Controllers\RencanaPembelianController;
 use App\Http\Controllers\PeminjamanBarangController;
 use App\Http\Controllers\UMKMController;
+use App\Http\Controllers\BantuanSosialController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -115,6 +116,20 @@ Route::middleware('auth')->group(function () {
     Route::get('peminjaman/{peminjaman}', [PeminjamanBarangController::class, 'show'])->name('peminjaman.show');
     Route::patch('peminjaman/{peminjaman}/kembalikan', [PeminjamanBarangController::class, 'kembalikan'])->name('peminjaman.kembalikan');
     Route::delete('peminjaman/{peminjaman}', [PeminjamanBarangController::class, 'destroy'])->name('peminjaman.destroy');
+
+    // Bantuan Sosial
+    Route::get('bantuan-sosial', [BantuanSosialController::class, 'index'])->name('bantuan-sosial.index');
+    Route::get('bantuan-sosial/kurang-mampu', [BantuanSosialController::class, 'kurangMampu'])->name('bantuan-sosial.kurang-mampu');
+    Route::get('bantuan-sosial/ajukan', [BantuanSosialController::class, 'ajukan'])->name('bantuan-sosial.ajukan');
+    Route::post('bantuan-sosial/ajukan', [BantuanSosialController::class, 'storeAjukan'])->name('bantuan-sosial.store-ajukan');
+    Route::get('bantuan-sosial/tambah-penerima', [BantuanSosialController::class, 'tambahPenerima'])->name('bantuan-sosial.tambah-penerima');
+    Route::post('bantuan-sosial/tambah-penerima', [BantuanSosialController::class, 'storePenerima'])->name('bantuan-sosial.store-penerima');
+    Route::get('bantuan-sosial/{penerimaBantuan}', [BantuanSosialController::class, 'show'])->name('bantuan-sosial.show');
+    Route::get('bantuan-sosial/{penerimaBantuan}/edit', [BantuanSosialController::class, 'edit'])->name('bantuan-sosial.edit');
+    Route::put('bantuan-sosial/{penerimaBantuan}', [BantuanSosialController::class, 'update'])->name('bantuan-sosial.update');
+    Route::delete('bantuan-sosial/{penerimaBantuan}', [BantuanSosialController::class, 'destroy'])->name('bantuan-sosial.destroy');
+    Route::patch('bantuan-sosial/pengajuan/{pengajuan}/status', [BantuanSosialController::class, 'updateStatusPengajuan'])->name('bantuan-sosial.pengajuan.status');
+    Route::get('bantuan-sosial/get-warga', [BantuanSosialController::class, 'getWarga'])->name('bantuan-sosial.get-warga');
 
     // UMKM
     Route::get('umkm', [UMKMController::class, 'index'])->name('umkm.index');
