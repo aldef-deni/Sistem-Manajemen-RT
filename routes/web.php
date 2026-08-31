@@ -18,6 +18,7 @@ use App\Http\Controllers\BantuanSosialController;
 use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\SuratController;
 use App\Http\Controllers\PengumumanController;
+use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -173,6 +174,9 @@ Route::middleware('auth')->group(function () {
     Route::put('pengumuman/{pengumuman}', [PengumumanController::class, 'update'])->name('pengumuman.update');
     Route::delete('pengumuman/{pengumuman}', [PengumumanController::class, 'destroy'])->name('pengumuman.destroy');
 
+    // Kalender
+    Route::get('kalender', [KalenderController::class, 'index'])->name('kalender.index');
+
     // All Menu Pages
     $pages = [
         // Kependudukan
@@ -189,7 +193,6 @@ Route::middleware('auth')->group(function () {
 
         // Pengaturan & Info
         'pengaturan',
-        'kalender',
         'jadwal-keamanan',
 
         // Keamanan & Kebersihan
