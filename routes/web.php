@@ -19,6 +19,7 @@ use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\SuratController;
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\KalenderController;
+use App\Http\Controllers\JadwalKegiatanController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -176,6 +177,15 @@ Route::middleware('auth')->group(function () {
 
     // Kalender
     Route::get('kalender', [KalenderController::class, 'index'])->name('kalender.index');
+
+    // Jadwal Kegiatan
+    Route::get('jadwal-kegiatan', [JadwalKegiatanController::class, 'index'])->name('jadwal-kegiatan.index');
+    Route::get('jadwal-kegiatan/create', [JadwalKegiatanController::class, 'create'])->name('jadwal-kegiatan.create');
+    Route::post('jadwal-kegiatan', [JadwalKegiatanController::class, 'store'])->name('jadwal-kegiatan.store');
+    Route::get('jadwal-kegiatan/{jadwalKegiatan}', [JadwalKegiatanController::class, 'show'])->name('jadwal-kegiatan.show');
+    Route::get('jadwal-kegiatan/{jadwalKegiatan}/edit', [JadwalKegiatanController::class, 'edit'])->name('jadwal-kegiatan.edit');
+    Route::put('jadwal-kegiatan/{jadwalKegiatan}', [JadwalKegiatanController::class, 'update'])->name('jadwal-kegiatan.update');
+    Route::delete('jadwal-kegiatan/{jadwalKegiatan}', [JadwalKegiatanController::class, 'destroy'])->name('jadwal-kegiatan.destroy');
 
     // All Menu Pages
     $pages = [

@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             VisitorSeeder::class,
             SuratSeeder::class,
             PengumumanSeeder::class,
+            JadwalKegiatanSeeder::class,
         ]);
     }
 }
