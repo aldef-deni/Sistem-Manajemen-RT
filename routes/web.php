@@ -16,6 +16,7 @@ use App\Http\Controllers\PeminjamanBarangController;
 use App\Http\Controllers\UMKMController;
 use App\Http\Controllers\BantuanSosialController;
 use App\Http\Controllers\VisitorController;
+use App\Http\Controllers\SuratController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -151,6 +152,16 @@ Route::middleware('auth')->group(function () {
     Route::put('visitor/{visitor}', [VisitorController::class, 'update'])->name('visitor.update');
     Route::delete('visitor/{visitor}', [VisitorController::class, 'destroy'])->name('visitor.destroy');
     Route::patch('visitor/{visitor}/checkout', [VisitorController::class, 'checkout'])->name('visitor.checkout');
+
+    // Surat Menyurat
+    Route::get('surat', [SuratController::class, 'index'])->name('surat.index');
+    Route::get('surat/create', [SuratController::class, 'create'])->name('surat.create');
+    Route::post('surat', [SuratController::class, 'store'])->name('surat.store');
+    Route::get('surat/{surat}', [SuratController::class, 'show'])->name('surat.show');
+    Route::get('surat/{surat}/edit', [SuratController::class, 'edit'])->name('surat.edit');
+    Route::put('surat/{surat}', [SuratController::class, 'update'])->name('surat.update');
+    Route::delete('surat/{surat}', [SuratController::class, 'destroy'])->name('surat.destroy');
+    Route::patch('surat/{surat}/status', [SuratController::class, 'updateStatus'])->name('surat.status');
 
     // All Menu Pages
     $pages = [
