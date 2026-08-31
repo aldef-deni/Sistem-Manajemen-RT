@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             BantuanSosialSeeder::class,
             VisitorSeeder::class,
             SuratSeeder::class,
+            PengumumanSeeder::class,
         ]);
     }
 }

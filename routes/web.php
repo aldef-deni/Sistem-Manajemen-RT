@@ -17,6 +17,7 @@ use App\Http\Controllers\UMKMController;
 use App\Http\Controllers\BantuanSosialController;
 use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\SuratController;
+use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -162,6 +163,15 @@ Route::middleware('auth')->group(function () {
     Route::put('surat/{surat}', [SuratController::class, 'update'])->name('surat.update');
     Route::delete('surat/{surat}', [SuratController::class, 'destroy'])->name('surat.destroy');
     Route::patch('surat/{surat}/status', [SuratController::class, 'updateStatus'])->name('surat.status');
+
+    // Pengumuman
+    Route::get('pengumuman', [PengumumanController::class, 'index'])->name('pengumuman.index');
+    Route::get('pengumuman/create', [PengumumanController::class, 'create'])->name('pengumuman.create');
+    Route::post('pengumuman', [PengumumanController::class, 'store'])->name('pengumuman.store');
+    Route::get('pengumuman/{pengumuman}', [PengumumanController::class, 'show'])->name('pengumuman.show');
+    Route::get('pengumuman/{pengumuman}/edit', [PengumumanController::class, 'edit'])->name('pengumuman.edit');
+    Route::put('pengumuman/{pengumuman}', [PengumumanController::class, 'update'])->name('pengumuman.update');
+    Route::delete('pengumuman/{pengumuman}', [PengumumanController::class, 'destroy'])->name('pengumuman.destroy');
 
     // All Menu Pages
     $pages = [
