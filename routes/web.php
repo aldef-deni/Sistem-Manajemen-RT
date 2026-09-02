@@ -187,6 +187,15 @@ Route::middleware('auth')->group(function () {
     Route::put('jadwal-kegiatan/{jadwalKegiatan}', [JadwalKegiatanController::class, 'update'])->name('jadwal-kegiatan.update');
     Route::delete('jadwal-kegiatan/{jadwalKegiatan}', [JadwalKegiatanController::class, 'destroy'])->name('jadwal-kegiatan.destroy');
 
+    // Kegiatan RT
+    Route::get('kegiatan-rt', [\App\Http\Controllers\KegiatanRTController::class, 'index'])->name('kegiatan-rt.index');
+    Route::get('kegiatan-rt/create', [\App\Http\Controllers\KegiatanRTController::class, 'create'])->name('kegiatan-rt.create');
+    Route::post('kegiatan-rt', [\App\Http\Controllers\KegiatanRTController::class, 'store'])->name('kegiatan-rt.store');
+    Route::get('kegiatan-rt/{kegiatanRt}', [\App\Http\Controllers\KegiatanRTController::class, 'show'])->name('kegiatan-rt.show');
+    Route::get('kegiatan-rt/{kegiatanRt}/edit', [\App\Http\Controllers\KegiatanRTController::class, 'edit'])->name('kegiatan-rt.edit');
+    Route::put('kegiatan-rt/{kegiatanRt}', [\App\Http\Controllers\KegiatanRTController::class, 'update'])->name('kegiatan-rt.update');
+    Route::delete('kegiatan-rt/{kegiatanRt}', [\App\Http\Controllers\KegiatanRTController::class, 'destroy'])->name('kegiatan-rt.destroy');
+
     // All Menu Pages
     $pages = [
         // Kependudukan
