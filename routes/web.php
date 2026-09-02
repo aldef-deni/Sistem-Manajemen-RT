@@ -20,6 +20,7 @@ use App\Http\Controllers\SuratController;
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\JadwalKegiatanController;
+use App\Http\Controllers\NotulenRapatController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -195,6 +196,15 @@ Route::middleware('auth')->group(function () {
     Route::get('kegiatan-rt/{kegiatanRt}/edit', [\App\Http\Controllers\KegiatanRTController::class, 'edit'])->name('kegiatan-rt.edit');
     Route::put('kegiatan-rt/{kegiatanRt}', [\App\Http\Controllers\KegiatanRTController::class, 'update'])->name('kegiatan-rt.update');
     Route::delete('kegiatan-rt/{kegiatanRt}', [\App\Http\Controllers\KegiatanRTController::class, 'destroy'])->name('kegiatan-rt.destroy');
+
+    // Notulen Rapat
+    Route::get('notulen-rapat', [NotulenRapatController::class, 'index'])->name('notulen-rapat.index');
+    Route::get('notulen-rapat/create', [NotulenRapatController::class, 'create'])->name('notulen-rapat.create');
+    Route::post('notulen-rapat', [NotulenRapatController::class, 'store'])->name('notulen-rapat.store');
+    Route::get('notulen-rapat/{notulenRapat}', [NotulenRapatController::class, 'show'])->name('notulen-rapat.show');
+    Route::get('notulen-rapat/{notulenRapat}/edit', [NotulenRapatController::class, 'edit'])->name('notulen-rapat.edit');
+    Route::put('notulen-rapat/{notulenRapat}', [NotulenRapatController::class, 'update'])->name('notulen-rapat.update');
+    Route::delete('notulen-rapat/{notulenRapat}', [NotulenRapatController::class, 'destroy'])->name('notulen-rapat.destroy');
 
     // All Menu Pages
     $pages = [

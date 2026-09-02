@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             PengumumanSeeder::class,
             JadwalKegiatanSeeder::class,
             KegiatanRTSeeder::class,
+            NotulenRapatSeeder::class,
         ]);
     }
 }

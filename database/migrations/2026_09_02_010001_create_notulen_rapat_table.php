@@ -28,7 +28,7 @@ return new class extends Migration
 
         Schema::create('notulen_hadir', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('notulen_rapat_id')->constrained()->onDelete('cascade');
+            $table->foreignId('notulen_rapat_id')->constrained('notulen_rapat')->onDelete('cascade');
             $table->string('nama_peserta');
             $table->text('ulasan')->nullable();
             $table->boolean('hadir')->default(true);
@@ -37,7 +37,7 @@ return new class extends Migration
 
         Schema::create('notulen_poin', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('notulen_rapat_id')->constrained()->onDelete('cascade');
+            $table->foreignId('notulen_rapat_id')->constrained('notulen_rapat')->onDelete('cascade');
             $table->string('topik');
             $table->integer('urutan')->default(0);
             $table->timestamps();
