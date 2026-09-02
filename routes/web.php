@@ -21,6 +21,8 @@ use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\JadwalKegiatanController;
 use App\Http\Controllers\NotulenRapatController;
+use App\Http\Controllers\StrukturRTController;
+use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -206,38 +208,36 @@ Route::middleware('auth')->group(function () {
     Route::put('notulen-rapat/{notulenRapat}', [NotulenRapatController::class, 'update'])->name('notulen-rapat.update');
     Route::delete('notulen-rapat/{notulenRapat}', [NotulenRapatController::class, 'destroy'])->name('notulen-rapat.destroy');
 
+    // Struktur RT
+    Route::get('struktur-rt', [StrukturRTController::class, 'index'])->name('struktur-rt.show');
+
+    // Pengaturan
+    Route::get('pengaturan', [PengaturanController::class, 'index'])->name('pengaturan');
+    Route::put('pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');
+    Route::get('pengaturan/tata-tertib', [PengaturanController::class, 'tataTertib'])->name('pengaturan.tata-tertib');
+    Route::put('pengaturan/tata-tertib', [PengaturanController::class, 'updateTataTertib'])->name('pengaturan.tata-tertib.update');
+    Route::get('pengaturan/kelola-pengurus', [PengaturanController::class, 'kelolaPengurus'])->name('pengaturan.kelola-pengurus');
+    Route::post('pengaturan/pengurus', [PengaturanController::class, 'storePengurus'])->name('pengaturan.pengurus.store');
+    Route::put('pengaturan/pengurus/{id}', [PengaturanController::class, 'updatePengurus'])->name('pengaturan.pengurus.update');
+    Route::delete('pengaturan/pengurus/{id}', [PengaturanController::class, 'destroyPengurus'])->name('pengaturan.pengurus.destroy');
+
     // All Menu Pages
     $pages = [
-        // Kependudukan
         'penduduk-pindah',
         'pembayaran',
         'laporan-keuangan',
-
-        // Dokumentasi
         'layanan-warga',
         'layanan',
         'surat-menunggu',
         'e-ktp',
         'buat-pengajuan',
-
-        // Pengaturan & Info
-        'pengaturan',
         'jadwal-keamanan',
-
-        // Keamanan & Kebersihan
         'patroli-rt',
         'ronda-rapat',
-        'struktur-rt',
-
-        // Media
         'video',
         'berita',
-
-        // Apresiasi & Partisipasi
         'penghargaan',
         'voting-warga',
-
-        // Profil
         'profil-saya',
     ];
 

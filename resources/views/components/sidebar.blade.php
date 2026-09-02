@@ -52,7 +52,15 @@
                 ['label' => 'Jadwal Kegiatan', 'route' => 'jadwal-kegiatan.index', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>'],
                 ['label' => 'Kegiatan RT', 'route' => 'kegiatan-rt.index', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>'],
                 ['label' => 'Notulen Rapat', 'route' => 'notulen-rapat.index', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>'],
-                ['label' => 'Struktur RT', 'route' => 'struktur-rt', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>'],
+                ['label' => 'Struktur RT', 'route' => 'struktur-rt.show', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>'],
+            ],
+        ],
+        [
+            'group' => 'Pengaturan',
+            'items' => [
+                ['label' => 'Umum', 'route' => 'pengaturan', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>'],
+                ['label' => 'Tata Tertib', 'route' => 'pengaturan.tata-tertib', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>'],
+                ['label' => 'Kelola Pengurus', 'route' => 'pengaturan.kelola-pengurus', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-3-3h-1m-5 5v-2a3 3 0 00-3-3H4a3 3 0 00-3 3v2h14z"/></svg>'],
             ],
         ],
         [
@@ -72,7 +80,6 @@
     ];
 
     function isActive($routeName, $currentRoute) {
-        // Exact match OR prefix match (e.g. 'kas-rt.index' matches 'kas-rt.pemasukan')
         if ($routeName === $currentRoute) return true;
         $prefix = explode('.', $routeName)[0];
         $curPrefix = explode('.', $currentRoute)[0];
@@ -109,14 +116,12 @@
     <nav class="flex-1 overflow-y-auto py-3 px-2" id="sidebar-menu">
         @foreach($menu as $item)
             @if(isset($item['label']))
-                {{-- Single menu item (Dashboard) --}}
                 <a href="{{ route($item['route']) }}"
                    class="menu-item {{ isActive($item['route'], $currentRoute) ? 'active' : '' }}">
                     {!! $item['icon'] !!}
                     <span>{{ $item['label'] }}</span>
                 </a>
             @elseif(isset($item['group']))
-                {{-- Menu group --}}
                 <div class="menu-group {{ isGroupActive($item['items'], $currentRoute) ? 'open' : '' }}" data-group>
                     <div class="menu-group-label" onclick="this.parentElement.classList.toggle('open')">
                         <span>{{ $item['group'] }}</span>
