@@ -23,6 +23,7 @@ use App\Http\Controllers\JadwalKegiatanController;
 use App\Http\Controllers\NotulenRapatController;
 use App\Http\Controllers\StrukturRTController;
 use App\Http\Controllers\PengaturanController;
+use App\Http\Controllers\PengaduanController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -220,6 +221,15 @@ Route::middleware('auth')->group(function () {
     Route::post('pengaturan/pengurus', [PengaturanController::class, 'storePengurus'])->name('pengaturan.pengurus.store');
     Route::put('pengaturan/pengurus/{id}', [PengaturanController::class, 'updatePengurus'])->name('pengaturan.pengurus.update');
     Route::delete('pengaturan/pengurus/{id}', [PengaturanController::class, 'destroyPengurus'])->name('pengaturan.pengurus.destroy');
+
+    // Pengaduan / Saran
+    Route::get('pengaduan', [PengaduanController::class, 'index'])->name('pengaduan.index');
+    Route::get('pengaduan/create', [PengaduanController::class, 'create'])->name('pengaduan.create');
+    Route::post('pengaduan', [PengaduanController::class, 'store'])->name('pengaduan.store');
+    Route::get('pengaduan/{pengaduan}', [PengaduanController::class, 'show'])->name('pengaduan.show');
+    Route::patch('pengaduan/{pengaduan}/status', [PengaduanController::class, 'updateStatus'])->name('pengaduan.status');
+    Route::post('pengaduan/{pengaduan}/balas', [PengaduanController::class, 'balas'])->name('pengaduan.balas');
+    Route::delete('pengaduan/{pengaduan}', [PengaduanController::class, 'destroy'])->name('pengaduan.destroy');
 
     // All Menu Pages
     $pages = [
