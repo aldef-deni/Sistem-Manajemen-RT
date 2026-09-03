@@ -1,0 +1,33 @@
+name: Deploy ke rt.aldeftech.com
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:        # tombol "Run workflow" untuk deploy manual
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy ke server produksi
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Jalankan deploy.sh di server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host:     ${{ secrets.SSH_HOST }}
+          port:     ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key:      ${{ secrets.SSH_KEY }}
+          script_stop: true
+          command_timeout: 15m
+          script: |
+            cd ${{ secrets.APP_DIR }}
+            bash deploy.sh
+
+      - name: Ringkasan
+        if: success()
+        run: echo "Deploy ${{ github.sha }} berhasil -> https://rt.aldeftech.com" >> $GITHUB_STEP_SUMMARY
