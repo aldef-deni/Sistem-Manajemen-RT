@@ -27,7 +27,7 @@ NPM_BIN="${NPM_BIN:-npm}"
 BUILD_ASSETS="${BUILD_ASSETS:-1}"
 SEED="${SEED:-0}"
 MAINTENANCE="${MAINTENANCE:-1}"
-WEB_USER="${WEB_USER:-www}"          # aaPanel = www, cPanel = user cPanel, nginx murni = www-data
+CHOWN_TO="${CHOWN_TO:-}"             # contoh: "aldeftech:www". Kosong = lewati chown.
 PHP_FPM_SERVICE="${PHP_FPM_SERVICE:-}"  # contoh: php-fpm-83 (aaPanel) — kosongkan untuk melewati
 
 LOG_FILE="$APP_DIR/storage/logs/deploy.log"
@@ -140,13 +140,19 @@ step "Menyegarkan cache Laravel"
 
 # --- Hak akses ----------------------------------------------------------
 step "Menyetel hak akses"
-if id -u "$WEB_USER" >/dev/null 2>&1; then
-    chown -R "$WEB_USER:$WEB_USER" storage bootstrap/cache public/uploads 2>/dev/null || true
+WRITABLE_DIRS=(storage bootstrap/cache public/uploads)
+if [ -n "$CHOWN_TO" ] && [ "$(id -u)" = "0" ]; then
+    chown -R "$CHOWN_TO" "${WRITABLE_DIRS[@]}" 2>/dev/null || true
+    info "Kepemilikan disetel ke $CHOWN_TO"
 else
-    info "User '$WEB_USER' tidak ada, chown dilewati."
+    info "Bukan root (atau CHOWN_TO kosong) — chown dilewati, hanya chmod."
 fi
-chmod -R 775 storage bootstrap/cache 2>/dev/null || true
-[ -d public/uploads ] && chmod -R 775 public/uploads 2>/dev/null || true
+# 775 + setgid: file baru mewarisi grup web server, jadi php-fpm tetap bisa menulis.
+for d in "${WRITABLE_DIRS[@]}"; do
+    [ -d "$d" ] || continue
+    chmod -R ug+rwX,o-w "$d" 2>/dev/null || true
+    find "$d" -type d -exec chmod g+s {} + 2>/dev/null || true
+done
 
 # --- Selesai ------------------------------------------------------------
 bring_up

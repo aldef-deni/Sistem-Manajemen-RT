@@ -158,13 +158,12 @@ Kalau memakai cara ini, file `.github/workflows/deploy.yml` boleh dihapus.
 Buat file `deploy.conf` di folder aplikasi **di server** bila perlu:
 
 ```bash
+PHP_BIN=/www/server/php/83/bin/php   # sesuaikan versi, cek: ls /www/server/php/
 BUILD_ASSETS=0          # server tanpa Node.js — build aset di lokal, commit public/build
 MAINTENANCE=0           # jangan aktifkan halaman maintenance saat deploy
-WEB_USER=www            # user web server (aaPanel: www)
-PHP_BIN=/www/server/php/83/bin/php
-COMPOSER_BIN=/usr/local/bin/composer
-PHP_FPM_SERVICE=php-fpm-83
 SEED=0                  # 1 = jalankan db:seed tiap deploy (biasanya jangan)
+CHOWN_TO=""             # isi "aldeftech:www" HANYA bila deploy dijalankan sebagai root
+PHP_FPM_SERVICE=""      # isi php-fpm-83 HANYA bila deploy dijalankan sebagai root
 ```
 
 Cari path PHP yang benar dengan: `ls /www/server/php/`
