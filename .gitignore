@@ -23,3 +23,14 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Berkas unggahan warga (KK, bukti pengaduan, foto pengurus & profil).
+# Hanya struktur foldernya yang ikut repo, isinya milik masing-masing server.
+/public/uploads/*
+!/public/uploads/*/
+/public/uploads/*/*
+!/public/uploads/*/.gitkeep
+
+# deploy
+/deploy.conf
+/storage/deploy.lock
