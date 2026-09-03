@@ -37,9 +37,6 @@ class PageController extends Controller
         'ronda-rapat'       => ['title' => 'Ronda Rapat',       'section' => 'Keamanan & Kebersihan'],
         'struktur-rt'       => ['title' => 'Struktur RT',       'section' => 'Keamanan & Kebersihan'],
 
-        // Media
-        'video'             => ['title' => 'Video',             'section' => 'Media'],
-        'berita'            => ['title' => 'Berita',            'section' => 'Media'],
 
         // Apresiasi & Partisipasi
         'penghargaan'       => ['title' => 'Penghargaan',       'section' => 'Apresiasi & Partisipasi'],

@@ -66,36 +66,81 @@
             'group' => 'Pengaturan',
             'items' => [
                 ['label' => 'Profil Saya', 'route' => 'profil-saya', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>'],
-                ['label' => 'Umum', 'route' => 'pengaturan', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>'],
-                ['label' => 'Tata Tertib', 'route' => 'pengaturan.tata-tertib', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>'],
-                ['label' => 'Kelola Pengurus', 'route' => 'pengaturan.kelola-pengurus', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-3-3h-1m-5 5v-2a3 3 0 00-3-3H4a3 3 0 00-3 3v2h14z"/></svg>'],
-            ],
-        ],
-        [
-            'group' => 'Media',
-            'items' => [
-                ['label' => 'Video', 'route' => 'video', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>'],
-                ['label' => 'Berita', 'route' => 'berita', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>'],
+                [
+                    'label' => 'Umum',
+                    'route' => 'pengaturan',
+                    'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>',
+                    'children' => [
+                        ['label' => 'Tata Tertib', 'route' => 'pengaturan.tata-tertib', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>'],
+                        ['label' => 'Kelola Pengurus', 'route' => 'pengaturan.kelola-pengurus', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-3-3h-1m-5 5v-2a3 3 0 00-3-3H4a3 3 0 00-3 3v2h14zM9 7a3 3 0 116 0 3 3 0 01-6 0z"/></svg>'],
+                    ],
+                ],
             ],
         ],
     ];
 
-    function isActive($routeName, $currentRoute) {
-        if ($routeName === $currentRoute) return true;
-        $prefix = explode('.', $routeName)[0];
-        $curPrefix = explode('.', $currentRoute)[0];
-        return $prefix === $curPrefix;
+    /*
+     * Sebuah item menu dianggap AKTIF bila:
+     *  1. nama route-nya sama persis dengan route halaman saat ini, ATAU
+     *  2. item bertipe resource (.index) dan sedang berada di salah satu
+     *     halaman turunannya (mis. iuran-warga.index aktif saat di iuran-warga.edit).
+     * Item biasa tanpa titik (mis. 'pengaturan') HANYA aktif pada halaman persisnya —
+     * sehingga 'pengaturan', 'pengaturan.tata-tertib' dan 'pengaturan.kelola-pengurus'
+     * tidak pernah menyala bersamaan.
+     */
+    function isActive($itemRoute, $currentRoute) {
+        if ($itemRoute === $currentRoute) return true;
+        if (! str_contains($itemRoute, '.')) return false;
+        if (str_ends_with($itemRoute, '.index')) {
+            return explode('.', $itemRoute)[0] === explode('.', $currentRoute)[0];
+        }
+        return false;
     }
 
-    function isGroupActive($items, $currentRoute) {
+    // Cek apakah salah satu item (termasuk sub-menu di dalamnya) sedang aktif.
+    function anyItemActive($items, $currentRoute) {
         foreach ($items as $item) {
-            $prefix = explode('.', $item['route'])[0];
-            $curPrefix = explode('.', $currentRoute)[0];
-            if ($prefix === $curPrefix) return true;
+            $routes = [$item['route']];
+            foreach ($item['children'] ?? [] as $child) {
+                $routes[] = $child['route'];
+            }
+            foreach ($routes as $r) {
+                if (isActive($r, $currentRoute)) return true;
+            }
+        }
+        return false;
+    }
+
+    // Sub-menu induk (mis. Umum) terbuka bila route-nya sendiri atau anaknya aktif.
+    function subMenuOpen($sub, $currentRoute) {
+        if (isActive($sub['route'], $currentRoute)) return true;
+        foreach ($sub['children'] ?? [] as $child) {
+            if (isActive($child['route'], $currentRoute)) return true;
         }
         return false;
     }
 @endphp
+
+<style>
+    /* Sub-menu bertingkat (Pengaturan > Umum > Tata Tertib / Kelola Pengurus) */
+    .sidebar .menu-sub-head { display: flex; align-items: center; margin: 1px 0.375rem; border-radius: 0.5rem; }
+    .sidebar .menu-sub-head > a.menu-item { flex: 1; min-width: 0; margin: 0; }
+    .sidebar .menu-sub-toggle {
+        display: flex; align-items: center; justify-content: center;
+        width: 26px; height: 26px; margin-right: 2px; border: none; border-radius: 6px;
+        background: transparent; color: #64748b; cursor: pointer; flex-shrink: 0; transition: all 0.15s ease;
+    }
+    .sidebar .menu-sub-toggle:hover { color: #e2e8f0; background: rgba(255,255,255,0.06); }
+    .sidebar .menu-sub-toggle svg { width: 14px; height: 14px; transition: transform 0.2s ease; }
+    .sidebar .menu-sub.open .menu-sub-toggle svg { transform: rotate(90deg); }
+    .sidebar .menu-sub-items {
+        max-height: 0; overflow: hidden; transition: max-height 0.25s ease;
+        margin: 0 0 2px 0.875rem; border-left: 1px solid rgba(148,163,184,0.2); padding-left: 2px;
+    }
+    .sidebar .menu-sub.open .menu-sub-items { max-height: 220px; }
+    .sidebar .menu-sub-items .menu-item { margin-left: 0.375rem; margin-right: 0.375rem; padding-left: 0.5rem; }
+    .sidebar .menu-sub-items .menu-item svg { width: 15px; height: 15px; }
+</style>
 
 <aside class="sidebar flex flex-col" id="sidebar">
     <div class="px-5 py-5 border-b border-white/5">
@@ -121,7 +166,7 @@
                     <span>{{ $item['label'] }}</span>
                 </a>
             @elseif(isset($item['group']))
-                <div class="menu-group {{ isGroupActive($item['items'], $currentRoute) ? 'open' : '' }}" data-group>
+                <div class="menu-group {{ anyItemActive($item['items'], $currentRoute) ? 'open' : '' }}" data-group>
                     <div class="menu-group-label" onclick="this.parentElement.classList.toggle('open')">
                         <span>{{ $item['group'] }}</span>
                         <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,11 +175,38 @@
                     </div>
                     <div class="menu-group-items">
                         @foreach($item['items'] as $sub)
-                            <a href="{{ route($sub['route']) }}"
-                               class="menu-item {{ isActive($sub['route'], $currentRoute) ? 'active' : '' }}">
-                                {!! $sub['icon'] !!}
-                                <span>{{ $sub['label'] }}</span>
-                            </a>
+                            @if(isset($sub['children']))
+                                <div class="menu-sub {{ subMenuOpen($sub, $currentRoute) ? 'open' : '' }}">
+                                    <div class="menu-sub-head">
+                                        <a href="{{ route($sub['route']) }}"
+                                           class="menu-item {{ isActive($sub['route'], $currentRoute) ? 'active' : '' }}">
+                                            {!! $sub['icon'] !!}
+                                            <span>{{ $sub['label'] }}</span>
+                                        </a>
+                                        <button type="button" class="menu-sub-toggle" title="Buka sub menu {{ $sub['label'] }}"
+                                            onclick="this.closest('.menu-sub').classList.toggle('open')">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div class="menu-sub-items">
+                                        @foreach($sub['children'] as $child)
+                                            <a href="{{ route($child['route']) }}"
+                                               class="menu-item {{ isActive($child['route'], $currentRoute) ? 'active' : '' }}">
+                                                {!! $child['icon'] !!}
+                                                <span>{{ $child['label'] }}</span>
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @else
+                                <a href="{{ route($sub['route']) }}"
+                                   class="menu-item {{ isActive($sub['route'], $currentRoute) ? 'active' : '' }}">
+                                    {!! $sub['icon'] !!}
+                                    <span>{{ $sub['label'] }}</span>
+                                </a>
+                            @endif
                         @endforeach
                     </div>
                 </div>

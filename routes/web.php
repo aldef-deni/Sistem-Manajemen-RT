@@ -265,8 +265,6 @@ Route::middleware('auth')->group(function () {
         'jadwal-keamanan',
         'patroli-rt',
         'ronda-rapat',
-        'video',
-        'berita',
         'penghargaan',
         'voting-warga',
     ];

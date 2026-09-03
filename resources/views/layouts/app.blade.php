@@ -18,7 +18,7 @@
         @include('components.sidebar')
 
         {{-- Main Content --}}
-        <div class="flex-1 flex flex-col min-h-screen ml-0 md:ml-[250px]">
+        <div class="flex-1 flex flex-col min-h-screen">
             {{-- Top Header --}}
             <header class="top-header sticky top-0 z-40 px-6 py-3 flex items-center justify-between">
                 <div class="flex items-center gap-3">
