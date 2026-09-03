@@ -26,6 +26,7 @@ use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\PengaduanController;
 use App\Http\Controllers\PollingController;
 use App\Http\Controllers\ProfilController;
+use App\Http\Controllers\AkunController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -233,6 +234,9 @@ Route::middleware('auth')->group(function () {
     Route::post('pengaduan/{pengaduan}/balas', [PengaduanController::class, 'balas'])->name('pengaduan.balas');
     Route::delete('pengaduan/{pengaduan}', [PengaduanController::class, 'destroy'])->name('pengaduan.destroy');
 
+    // Kelola Akun (Administrator & Ketua RT)
+    Route::resource('akun', AkunController::class)->except(['show']);
+
     // Profil Saya
     Route::get('profil-saya', [ProfilController::class, 'index'])->name('profil-saya');
     Route::put('profil-saya', [ProfilController::class, 'update'])->name('profil.update');
@@ -254,7 +258,6 @@ Route::middleware('auth')->group(function () {
 
     // All Menu Pages
     $pages = [
-        'penduduk-pindah',
         'pembayaran',
         'laporan-keuangan',
         'layanan-warga',

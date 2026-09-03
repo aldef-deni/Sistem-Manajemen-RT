@@ -13,12 +13,14 @@
             <p class="text-xs text-slate-400 mt-1">No. KK: <span class="font-bold text-blue-600">{{ $kartu_keluarga->no_kk }}</span></p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="{{ route('kartu-keluarga.edit', $kartu_keluarga) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 text-white text-sm font-semibold rounded-lg hover:bg-amber-600 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                </svg>
-                Edit
-            </a>
+            @if(auth()->user()->canManageKependudukan())
+                <a href="{{ route('kartu-keluarga.edit', $kartu_keluarga) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 text-white text-sm font-semibold rounded-lg hover:bg-amber-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    Edit
+                </a>
+            @endif
             <a href="{{ route('kartu-keluarga.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 text-sm font-semibold rounded-lg hover:bg-slate-200 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
@@ -76,6 +78,30 @@
             </div>
         </div>
     </div>
+
+    {{-- File Kartu Keluarga --}}
+    @if($kartu_keluarga->file_kk_url)
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h3 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0"/>
+                </svg>
+                Kartu Keluarga (File)
+            </h3>
+            @if($kartu_keluarga->file_kk_is_image)
+                <a href="{{ $kartu_keluarga->file_kk_url }}" target="_blank" title="Klik untuk memperbesar">
+                    <img src="{{ $kartu_keluarga->file_kk_url }}" class="max-h-80 rounded-lg border border-slate-200 shadow-sm" alt="Kartu Keluarga {{ $kartu_keluarga->no_kk }}">
+                </a>
+            @else
+                <a href="{{ $kartu_keluarga->file_kk_url }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 text-sm font-semibold rounded-lg hover:bg-red-100 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    Buka File PDF Kartu Keluarga
+                </a>
+            @endif
+        </div>
+    @endif
 
     {{-- Anggota Table --}}
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">

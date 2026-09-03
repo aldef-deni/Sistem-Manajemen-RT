@@ -8,7 +8,6 @@ class PageController extends Controller
         // Kependudukan
         'data-warga'        => ['title' => 'Data Warga',        'section' => 'Kependudukan'],
         'kartu-keluarga'    => ['title' => 'Kartu Keluarga',    'section' => 'Kependudukan'],
-        'penduduk-pindah'   => ['title' => 'Penduduk Pindah',   'section' => 'Kependudukan'],
 
         // Keuangan
         'iuran-warga'       => ['title' => 'Iuran Warga',       'section' => 'Keuangan'],

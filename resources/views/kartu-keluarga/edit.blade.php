@@ -26,7 +26,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('kartu-keluarga.update', $kartu_keluarga) }}" id="kkForm">
+    <form method="POST" action="{{ route('kartu-keluarga.update', $kartu_keluarga) }}" id="kkForm" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -89,6 +89,29 @@
                         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Kode Pos</label>
                         <input type="text" name="kode_pos" value="{{ old('kode_pos', $kartu_keluarga->kode_pos) }}" maxlength="10"
                                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                    </div>
+                </div>
+
+                {{-- Upload Kartu Keluarga --}}
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Upload Kartu Keluarga (Foto / Scan)</label>
+                    <div class="flex items-start gap-4">
+                        <div id="kkPreview" class="w-28 h-20 shrink-0 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+                            @if($kartu_keluarga->file_kk_url)
+                                @if($kartu_keluarga->file_kk_is_image)
+                                    <img src="{{ $kartu_keluarga->file_kk_url }}" class="w-full h-full object-cover" alt="KK">
+                                @else
+                                    <span class="text-[11px] text-amber-600 font-semibold px-2 text-center">📄 PDF</span>
+                                @endif
+                            @else
+                                <span class="text-[11px] text-slate-400 px-2 text-center">Belum ada file</span>
+                            @endif
+                        </div>
+                        <div class="flex-1">
+                            <input type="file" name="file_kk" id="file_kk" accept=".jpg,.jpeg,.pdf"
+                                   class="block w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 cursor-pointer">
+                            <p class="text-[11px] text-slate-400 mt-1.5">Format: JPG, JPEG, PDF. Maksimal 5 MB. Pilih file baru untuk mengganti.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -315,6 +338,22 @@ function renumberRows() {
         row.querySelector('span.font-bold').textContent = i + 1;
     });
 }
+
+// Pratinjau file Kartu Keluarga
+const fileInput = document.getElementById('file_kk');
+const previewBox = document.getElementById('kkPreview');
+fileInput.addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) {
+        return;
+    }
+    if (file.type === 'application/pdf') {
+        previewBox.innerHTML = '<span class="text-[11px] text-amber-600 font-semibold px-2 text-center">📄 ' + file.name + '</span>';
+    } else {
+        const url = URL.createObjectURL(file);
+        previewBox.innerHTML = '<img src="' + url + '" class="w-full h-full object-cover" alt="Pratinjau KK">';
+    }
+});
 </script>
 @endpush
 @endsection

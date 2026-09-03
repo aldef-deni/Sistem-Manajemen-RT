@@ -36,10 +36,37 @@ class User extends Authenticatable
     public function getRoleLabelAttribute(): string
     {
         return match ($this->role) {
-            'admin' => 'Admin',
-            'pengurus' => 'Pengurus',
-            default => 'Warga',
+            'admin'    => 'Administrator',
+            'ketua'    => 'Ketua RT',
+            'pengurus' => 'Pengurus RT',
+            default    => 'Warga',
         };
+    }
+
+    public function getRoleBadgeAttribute(): string
+    {
+        return match ($this->role) {
+            'admin'    => 'bg-blue-50 text-blue-700',
+            'ketua'    => 'bg-green-50 text-green-700',
+            'pengurus' => 'bg-amber-50 text-amber-600',
+            default    => 'bg-slate-100 text-slate-600',
+        };
+    }
+
+    /**
+     * Administrator & Ketua RT boleh mengelola data kependudukan (CRUD).
+     */
+    public function canManageKependudukan(): bool
+    {
+        return in_array($this->role, ['admin', 'ketua'], true);
+    }
+
+    /**
+     * Hanya Administrator & Ketua RT yang boleh mengelola akun pengguna.
+     */
+    public function canManageAkun(): bool
+    {
+        return in_array($this->role, ['admin', 'ketua'], true);
     }
 
     public function getFotoUrlAttribute(): ?string

@@ -6,9 +6,21 @@ use App\Models\AnggotaKeluarga;
 use App\Models\KartuKeluarga;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class KartuKeluargaController extends Controller
 {
+    public function __construct()
+    {
+        // CRUD kependudukan hanya untuk Administrator & Ketua RT
+        $this->middleware(function ($request, $next) {
+            if (! auth()->user()?->canManageKependudukan()) {
+                abort(403, 'Hanya Administrator dan Ketua RT yang dapat mengubah data kependudukan.');
+            }
+            return $next($request);
+        })->except(['index', 'show']);
+    }
+
     public function index(Request $request)
     {
         $query = KartuKeluarga::with('kepalaKeluarga');
@@ -45,6 +57,7 @@ class KartuKeluargaController extends Controller
             'kecamatan' => 'nullable|string|max:100',
             'kabupaten' => 'nullable|string|max:100',
             'kode_pos'  => 'nullable|string|max:10',
+            'file_kk'   => 'nullable|file|mimes:jpg,jpeg,pdf|max:5120',
             // Anggota
             'anggota'                  => 'required|array|min:1',
             'anggota.*.nik'            => 'required|string|size:16|unique:anggota_keluarga,nik',
@@ -57,7 +70,9 @@ class KartuKeluargaController extends Controller
             'anggota.*.role'           => 'nullable|string|max:50',
         ]);
 
-        DB::transaction(function () use ($validated) {
+        $filePath = $this->uploadFileKK($request);
+
+        DB::transaction(function () use ($validated, $filePath) {
             $kk = KartuKeluarga::create([
                 'no_kk'     => $validated['no_kk'],
                 'rt'        => $validated['rt'],
@@ -67,6 +82,7 @@ class KartuKeluargaController extends Controller
                 'kecamatan' => $validated['kecamatan'],
                 'kabupaten' => $validated['kabupaten'],
                 'kode_pos'  => $validated['kode_pos'],
+                'file_kk'   => $filePath,
             ]);
 
             foreach ($validated['anggota'] as $i => $anggota) {
@@ -109,6 +125,7 @@ class KartuKeluargaController extends Controller
             'kecamatan' => 'nullable|string|max:100',
             'kabupaten' => 'nullable|string|max:100',
             'kode_pos'  => 'nullable|string|max:10',
+            'file_kk'   => 'nullable|file|mimes:jpg,jpeg,pdf|max:5120',
             'anggota'                  => 'required|array|min:1',
             'anggota.*.id'             => 'nullable|integer',
             'anggota.*.nik'            => 'required|string|size:16',
@@ -121,7 +138,9 @@ class KartuKeluargaController extends Controller
             'anggota.*.role'           => 'nullable|string|max:50',
         ]);
 
-        DB::transaction(function () use ($validated, $kartu_keluarga) {
+        $filePath = $this->uploadFileKK($request, $kartu_keluarga->file_kk);
+
+        DB::transaction(function () use ($validated, $kartu_keluarga, $filePath) {
             $kartu_keluarga->update([
                 'no_kk'     => $validated['no_kk'],
                 'rt'        => $validated['rt'],
@@ -131,6 +150,7 @@ class KartuKeluargaController extends Controller
                 'kecamatan' => $validated['kecamatan'],
                 'kabupaten' => $validated['kabupaten'],
                 'kode_pos'  => $validated['kode_pos'],
+                'file_kk'   => $filePath,
             ]);
 
             // Collect existing IDs to keep
@@ -176,7 +196,39 @@ class KartuKeluargaController extends Controller
 
     public function destroy(KartuKeluarga $kartu_keluarga)
     {
+        $this->deleteFileKK($kartu_keluarga->file_kk);
         $kartu_keluarga->delete();
         return redirect()->route('kartu-keluarga.index')->with('success', 'Kartu Keluarga berhasil dihapus!');
+    }
+
+    /**
+     * Simpan file Kartu Keluarga (JPG/JPEG/PDF) ke public/uploads/kk.
+     */
+    private function uploadFileKK(Request $request, ?string $old = null): ?string
+    {
+        if (! $request->hasFile('file_kk')) {
+            return $old;
+        }
+
+        $file = $request->file('file_kk');
+        $dir  = public_path('uploads/kk');
+
+        if (! is_dir($dir)) {
+            mkdir($dir, 0775, true);
+        }
+
+        $name = 'kk-' . now()->format('YmdHis') . '-' . Str::random(6) . '.' . $file->getClientOriginalExtension();
+        $file->move($dir, $name);
+
+        $this->deleteFileKK($old);
+
+        return 'uploads/kk/' . $name;
+    }
+
+    private function deleteFileKK(?string $path): void
+    {
+        if ($path && file_exists(public_path($path))) {
+            @unlink(public_path($path));
+        }
     }
 }

@@ -17,7 +17,24 @@ class KartuKeluarga extends Model
         'kecamatan',
         'kabupaten',
         'kode_pos',
+        'file_kk',
     ];
+
+    public function getFileKkUrlAttribute(): ?string
+    {
+        return $this->file_kk && file_exists(public_path($this->file_kk))
+            ? asset($this->file_kk)
+            : null;
+    }
+
+    public function getFileKkIsImageAttribute(): bool
+    {
+        return $this->file_kk && in_array(
+            strtolower(pathinfo($this->file_kk, PATHINFO_EXTENSION)),
+            ['jpg', 'jpeg', 'png', 'webp'],
+            true
+        );
+    }
 
     public function anggota(): HasMany
     {

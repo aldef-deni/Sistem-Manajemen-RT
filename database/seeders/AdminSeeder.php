@@ -31,5 +31,27 @@ class AdminSeeder extends Seeder
                 'password' => Hash::make('password'),
             ]
         );
+
+        User::updateOrCreate(
+            ['email' => 'ketua@sistemrt.com'],
+            [
+                'name'     => 'Ketua RT',
+                'username' => 'ketua',
+                'no_hp'    => '081211122233',
+                'role'     => 'ketua',
+                'password' => Hash::make('password'),
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'pengurus@sistemrt.com'],
+            [
+                'name'     => 'Pengurus RT',
+                'username' => 'pengurus',
+                'no_hp'    => '081244455566',
+                'role'     => 'pengurus',
+                'password' => Hash::make('password'),
+            ]
+        );
     }
 }
