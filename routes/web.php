@@ -25,6 +25,7 @@ use App\Http\Controllers\StrukturRTController;
 use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\PengaduanController;
 use App\Http\Controllers\PollingController;
+use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -232,6 +233,13 @@ Route::middleware('auth')->group(function () {
     Route::post('pengaduan/{pengaduan}/balas', [PengaduanController::class, 'balas'])->name('pengaduan.balas');
     Route::delete('pengaduan/{pengaduan}', [PengaduanController::class, 'destroy'])->name('pengaduan.destroy');
 
+    // Profil Saya
+    Route::get('profil-saya', [ProfilController::class, 'index'])->name('profil-saya');
+    Route::put('profil-saya', [ProfilController::class, 'update'])->name('profil.update');
+    Route::post('profil-saya/foto', [ProfilController::class, 'updateFoto'])->name('profil.foto');
+    Route::delete('profil-saya/foto', [ProfilController::class, 'hapusFoto'])->name('profil.foto.hapus');
+    Route::put('profil-saya/password', [ProfilController::class, 'updatePassword'])->name('profil.password');
+
     // Polling Warga
     Route::get('polling', [PollingController::class, 'index'])->name('polling.index');
     Route::get('polling/create', [PollingController::class, 'create'])->name('polling.create');
@@ -261,7 +269,6 @@ Route::middleware('auth')->group(function () {
         'berita',
         'penghargaan',
         'voting-warga',
-        'profil-saya',
     ];
 
     foreach ($pages as $page) {

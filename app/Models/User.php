@@ -20,9 +20,35 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
+        'no_hp',
+        'foto',
+        'role',
         'password',
     ];
+
+    public function getInitialAttribute(): string
+    {
+        return strtoupper(substr($this->name ?? 'A', 0, 1));
+    }
+
+    public function getRoleLabelAttribute(): string
+    {
+        return match ($this->role) {
+            'admin' => 'Admin',
+            'pengurus' => 'Pengurus',
+            default => 'Warga',
+        };
+    }
+
+    public function getFotoUrlAttribute(): ?string
+    {
+        if ($this->foto && file_exists(public_path($this->foto))) {
+            return asset($this->foto);
+        }
+        return null;
+    }
 
     /**
      * The attributes that should be hidden for serialization.
