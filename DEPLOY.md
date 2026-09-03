@@ -4,15 +4,20 @@ Setiap `git push` ke branch **`main`** akan otomatis men-deploy ke
 **https://rt.aldeftech.com**.
 
 ```
-push ke main  ->  GitHub Actions  --ssh-->  server  ->  bash deploy.sh
+push ke main  ->  GitHub Actions  ->  npm run build (aset Vite)
+                                  ->  kirim public/build ke server (scp)
+                                  --ssh-->  bash deploy.sh di server
 ```
+
+Aset front-end dibangun **di GitHub**, bukan di VPS — jadi server tidak perlu
+Node.js dan tidak kehabisan RAM saat build.
 
 File yang terlibat:
 
 | File | Jalan di mana | Fungsi |
 |---|---|---|
 | `.github/workflows/deploy.yml` | GitHub | Terpicu saat push, SSH ke server |
-| `deploy.sh` | Server | Pull, composer, build, migrate, cache |
+| `deploy.sh` | Server | Pull, composer, migrate, cache, hak akses |
 | `deploy.conf` | Server (opsional, tidak di git) | Menimpa setelan per-server |
 
 ---
@@ -129,7 +134,8 @@ tail -f /www/wwwroot/rt.aldeftech.com/storage/logs/deploy.log
 ```
 
 Deploy manual tanpa push: GitHub → Actions → *Deploy ke rt.aldeftech.com* →
-**Run workflow**. Atau langsung di server: `bash deploy.sh`.
+**Run workflow**. Atau langsung di server: `BUILD_ASSETS=0 bash deploy.sh`
+(pakai aset yang sudah ada; untuk membangun ulang aset, jalankan lewat Actions).
 
 ---
 
@@ -159,7 +165,7 @@ Buat file `deploy.conf` di folder aplikasi **di server** bila perlu:
 
 ```bash
 PHP_BIN=/www/server/php/83/bin/php   # sesuaikan versi, cek: ls /www/server/php/
-BUILD_ASSETS=0          # server tanpa Node.js — build aset di lokal, commit public/build
+BUILD_ASSETS=0          # default dari workflow: aset sudah dibangun di GitHub
 MAINTENANCE=0           # jangan aktifkan halaman maintenance saat deploy
 SEED=0                  # 1 = jalankan db:seed tiap deploy (biasanya jangan)
 CHOWN_TO=""             # isi "aldeftech:www" HANYA bila deploy dijalankan sebagai root
@@ -171,6 +177,13 @@ Cari path PHP yang benar dengan: `ls /www/server/php/`
 ---
 
 ## Yang perlu diperhatikan
+
+**Aset Vite tidak ada di repo.** `public/build/` di-gitignore dan dikirim ke
+server oleh GitHub Actions setiap deploy. Kalau Anda pernah `git clone` manual
+lalu membuka situs dan muncul *"Vite manifest not found"*, itu wajar — jalankan
+sekali deploy lewat Actions (atau **Run workflow**) dan aset akan terkirim.
+
+
 
 **`git reset --hard` di `deploy.sh`.** Deploy menyamakan file yang dilacak git
 dengan isi `main`. Artinya: **jangan pernah mengedit file langsung di server** —
