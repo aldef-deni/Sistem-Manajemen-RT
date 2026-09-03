@@ -24,6 +24,7 @@ use App\Http\Controllers\NotulenRapatController;
 use App\Http\Controllers\StrukturRTController;
 use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\PengaduanController;
+use App\Http\Controllers\PollingController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -230,6 +231,18 @@ Route::middleware('auth')->group(function () {
     Route::patch('pengaduan/{pengaduan}/status', [PengaduanController::class, 'updateStatus'])->name('pengaduan.status');
     Route::post('pengaduan/{pengaduan}/balas', [PengaduanController::class, 'balas'])->name('pengaduan.balas');
     Route::delete('pengaduan/{pengaduan}', [PengaduanController::class, 'destroy'])->name('pengaduan.destroy');
+
+    // Polling Warga
+    Route::get('polling', [PollingController::class, 'index'])->name('polling.index');
+    Route::get('polling/create', [PollingController::class, 'create'])->name('polling.create');
+    Route::post('polling', [PollingController::class, 'store'])->name('polling.store');
+    Route::get('polling/{polling}', [PollingController::class, 'show'])->name('polling.show');
+    Route::get('polling/{polling}/edit', [PollingController::class, 'edit'])->name('polling.edit');
+    Route::put('polling/{polling}', [PollingController::class, 'update'])->name('polling.update');
+    Route::post('polling/{polling}/vote', [PollingController::class, 'vote'])->name('polling.vote');
+    Route::patch('polling/{polling}/close', [PollingController::class, 'close'])->name('polling.close');
+    Route::patch('polling/{polling}/complete', [PollingController::class, 'complete'])->name('polling.complete');
+    Route::delete('polling/{polling}', [PollingController::class, 'destroy'])->name('polling.destroy');
 
     // All Menu Pages
     $pages = [

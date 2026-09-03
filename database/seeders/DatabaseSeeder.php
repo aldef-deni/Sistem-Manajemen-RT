@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             NotulenRapatSeeder::class,
             StrukturRTSeeder::class,
             PengaduanSeeder::class,
+            PollingSeeder::class,
         ]);
     }
 }
