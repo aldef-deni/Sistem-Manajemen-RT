@@ -8,18 +8,16 @@ use Illuminate\Support\Facades\Hash;
 
 class AkunController extends Controller
 {
-    public function __construct()
+    private function authorizeManageAkun(): void
     {
-        $this->middleware(function ($request, $next) {
-            if (! auth()->user()?->canManageAkun()) {
-                abort(403, 'Anda tidak memiliki akses ke halaman ini.');
-            }
-            return $next($request);
-        });
+        if (! auth()->user()?->canManageAkun()) {
+            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+        }
     }
 
     public function index(Request $request)
     {
+        $this->authorizeManageAkun();
         $query = User::query();
 
         if ($search = $request->input('search')) {
@@ -41,11 +39,13 @@ class AkunController extends Controller
 
     public function create()
     {
+        $this->authorizeManageAkun();
         return view('akun.create');
     }
 
     public function store(Request $request)
     {
+        $this->authorizeManageAkun();
         $validated = $request->validate([
             'name'     => 'required|string|max:100',
             'username' => 'required|string|max:50|unique:users,username',
@@ -69,11 +69,13 @@ class AkunController extends Controller
 
     public function edit(User $akun)
     {
+        $this->authorizeManageAkun();
         return view('akun.edit', compact('akun'));
     }
 
     public function update(Request $request, User $akun)
     {
+        $this->authorizeManageAkun();
         $validated = $request->validate([
             'name'     => 'required|string|max:100',
             'username' => 'required|string|max:50|unique:users,username,' . $akun->id,
@@ -100,6 +102,7 @@ class AkunController extends Controller
 
     public function destroy(User $akun)
     {
+        $this->authorizeManageAkun();
         if ($akun->id === auth()->id()) {
             return back()->with('error', 'Tidak dapat menghapus akun sendiri.');
         }

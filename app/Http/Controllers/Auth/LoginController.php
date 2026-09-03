@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
@@ -23,12 +25,14 @@ class LoginController extends Controller
             'password' => 'required|string',
         ]);
 
-        $credentials = $request->only('username', 'password');
+        // Login bisa memakai username, email, atau nama
+        $user = User::where('username', $request->username)
+            ->orWhere('email', $request->username)
+            ->orWhere('name', $request->username)
+            ->first();
 
-        // Try to authenticate with username field
-        $fieldType = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
-
-        if (Auth::attempt([$fieldType => $request->username, 'password' => $request->password], $request->boolean('remember'))) {
+        if ($user && Hash::check($request->password, $user->password)) {
+            Auth::login($user, $request->boolean('remember'));
             $request->session()->regenerate();
             return redirect()->intended(route('dashboard'));
         }

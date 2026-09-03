@@ -10,15 +10,14 @@ use Illuminate\Support\Str;
 
 class KartuKeluargaController extends Controller
 {
-    public function __construct()
+    /**
+     * CRUD kependudukan hanya untuk Administrator & Ketua RT.
+     */
+    private function authorizeManageKependudukan(): void
     {
-        // CRUD kependudukan hanya untuk Administrator & Ketua RT
-        $this->middleware(function ($request, $next) {
-            if (! auth()->user()?->canManageKependudukan()) {
-                abort(403, 'Hanya Administrator dan Ketua RT yang dapat mengubah data kependudukan.');
-            }
-            return $next($request);
-        })->except(['index', 'show']);
+        if (! auth()->user()?->canManageKependudukan()) {
+            abort(403, 'Hanya Administrator dan Ketua RT yang dapat mengubah data kependudukan.');
+        }
     }
 
     public function index(Request $request)
@@ -43,11 +42,13 @@ class KartuKeluargaController extends Controller
 
     public function create()
     {
+        $this->authorizeManageKependudukan();
         return view('kartu-keluarga.create');
     }
 
     public function store(Request $request)
     {
+        $this->authorizeManageKependudukan();
         $validated = $request->validate([
             'no_kk'     => 'required|string|size:20|unique:kartu_keluarga,no_kk',
             'rt'        => 'nullable|string|max:5',
@@ -110,12 +111,14 @@ class KartuKeluargaController extends Controller
 
     public function edit(KartuKeluarga $kartu_keluarga)
     {
+        $this->authorizeManageKependudukan();
         $kartu_keluarga->load('anggota');
         return view('kartu-keluarga.edit', compact('kartu_keluarga'));
     }
 
     public function update(Request $request, KartuKeluarga $kartu_keluarga)
     {
+        $this->authorizeManageKependudukan();
         $validated = $request->validate([
             'no_kk'     => 'required|string|size:20|unique:kartu_keluarga,no_kk,' . $kartu_keluarga->id,
             'rt'        => 'nullable|string|max:5',
@@ -196,6 +199,7 @@ class KartuKeluargaController extends Controller
 
     public function destroy(KartuKeluarga $kartu_keluarga)
     {
+        $this->authorizeManageKependudukan();
         $this->deleteFileKK($kartu_keluarga->file_kk);
         $kartu_keluarga->delete();
         return redirect()->route('kartu-keluarga.index')->with('success', 'Kartu Keluarga berhasil dihapus!');

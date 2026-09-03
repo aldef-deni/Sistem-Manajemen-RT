@@ -197,8 +197,8 @@
                     </div>
                     <div>
                         <label class="profil-label" for="username">Username</label>
-                        <input type="text" id="username" value="{{ $user->username ?? '' }}" class="profil-input" disabled>
-                        <p style="font-size:11px;color:#94a3b8;margin-top:4px">Username tidak dapat diubah</p>
+                        <input type="text" id="username" name="username" value="{{ old('username', $user->username ?? '') }}" class="profil-input" required>
+                        <p style="font-size:11px;color:#94a3b8;margin-top:4px">Username dipakai untuk login</p>
                     </div>
                     <div>
                         <label class="profil-label" for="email">Email</label>

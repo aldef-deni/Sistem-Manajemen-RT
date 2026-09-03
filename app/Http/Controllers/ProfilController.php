@@ -35,15 +35,17 @@ class ProfilController extends Controller
         $user = auth()->user();
 
         $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|email|max:100|unique:users,email,' . $user->id,
-            'no_hp' => 'nullable|string|max:20',
+            'name'     => 'required|string|max:100',
+            'username' => 'required|string|max:50|unique:users,username,' . $user->id,
+            'email'    => 'required|email|max:100|unique:users,email,' . $user->id,
+            'no_hp'    => 'nullable|string|max:20',
         ]);
 
         $user->update([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'no_hp' => $validated['no_hp'] ?? null,
+            'name'     => $validated['name'],
+            'username' => $validated['username'],
+            'email'    => $validated['email'],
+            'no_hp'    => $validated['no_hp'] ?? null,
         ]);
 
         return back()->with('success', 'Profil berhasil diperbarui!');
