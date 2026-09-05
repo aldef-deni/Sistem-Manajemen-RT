@@ -9,19 +9,21 @@
         {{-- Left Panel — Brand --}}
         <div class="login-left md:w-[38%] p-8 md:p-10 flex flex-col justify-between text-white relative z-10">
             <div>
-                {{-- Logo --}}
-                <div class="flex items-center gap-3 mb-8">
-                    <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/>
-                        </svg>
-                    </div>
-                    <span class="text-sm font-bold tracking-wider opacity-90">ALDEF TECH</span>
+                {{-- Logo Aldef Tech --}}
+                {{--
+                    Logo landscape berisi tinta gelap di atas latar transparan,
+                    jadi di panel gelap ini ia diletakkan pada plate terang —
+                    perlakuan lockup, bukan tambalan.
+                --}}
+                <div class="brand-plate mb-7">
+                    <img src="{{ asset('images/aldef-landscape.png') }}"
+                         alt="Aldef Tech"
+                         class="h-9 w-auto block">
                 </div>
 
                 {{-- Title --}}
                 <h1 class="text-2xl md:text-3xl font-extrabold leading-tight mb-3">
-                    Sistem<br>Informasi RT
+                    Sistem<br>Manajemen RT
                 </h1>
                 <p class="text-blue-100 text-sm leading-relaxed mb-8 max-w-[260px]">
                     Kelola data warga, keuangan, dan layanan RT dalam satu platform.

@@ -191,20 +191,52 @@
     .sidebar .menu-sub.open .menu-sub-items { max-height: 220px; }
     .sidebar .menu-sub-items .menu-item { margin-left: 0.375rem; margin-right: 0.375rem; padding-left: 0.5rem; }
     .sidebar .menu-sub-items .menu-item svg { width: 15px; height: 15px; }
+
+    /* ---- Merek Aldef Tech di kepala sidebar ---- */
+    .sidebar-brand {
+        padding: 1.15rem 1rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .sidebar-plate {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.7rem 0.9rem;
+        border-radius: 0.8rem;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .sidebar-brand a:hover .sidebar-plate {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.34), inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+    }
+    .sidebar-brand-sub {
+        display: block;
+        margin-top: 0.6rem;
+        text-align: center;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #7c89a3;
+    }
 </style>
 
 <aside class="sidebar flex flex-col" id="sidebar">
-    <div class="px-5 py-5 border-b border-white/5">
-        <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/>
-                </svg>
-            </div>
-            <div>
-                <span class="text-white font-bold text-sm tracking-wide">SISTEM RT</span>
-                <p class="text-[10px] text-slate-500 leading-none mt-0.5">Manajemen RT</p>
-            </div>
+    <div class="sidebar-brand">
+        {{--
+            Logo landscape berisi tinta gelap di atas latar transparan, jadi
+            pada sidebar gelap ini ia duduk di plate terang. Nama sistem
+            ditulis di bawahnya sebagai baris tipis, bukan mengulang merek.
+        --}}
+        <a href="{{ route('dashboard') }}" class="block group">
+            <span class="sidebar-plate">
+                <img src="{{ asset('images/aldef-landscape.png') }}"
+                     alt="Aldef Tech"
+                     class="h-7 w-auto block">
+            </span>
+            <span class="sidebar-brand-sub">Sistem Manajemen RT</span>
         </a>
     </div>
 
