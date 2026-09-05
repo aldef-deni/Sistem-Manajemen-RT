@@ -142,6 +142,12 @@ jalankan `php artisan migrate:rollback` terpisah.
 
 ## Timezone
 
-`config/app.php` masih `'timezone' => 'UTC'` (hardcoded, `APP_TIMEZONE` di `.env`
-tidak berpengaruh). Untuk jadwal kegiatan dan notulen rapat, jamnya meleset 7 jam
-dari WIB. Perbaikannya satu baris: `env('APP_TIMEZONE', 'Asia/Jakarta')`.
+Aplikasi memakai **WIB (`Asia/Jakarta`)** — [config/app.php:70](config/app.php#L70)
+membacanya dari `APP_TIMEZONE` dengan bawaan `Asia/Jakarta`. Untuk memakai WITA
+atau WIT, isi `APP_TIMEZONE=Asia/Makassar` atau `Asia/Jayapura` di `.env` lalu
+jalankan `php artisan config:cache`.
+
+Laravel menyimpan stempel waktu ke database dalam timezone aplikasi, bukan UTC.
+Baris yang ditulis sebelum 2026-09-05 dibuat saat aplikasi masih UTC, jadi
+tampil 7 jam lebih awal dari waktu sebenarnya. Isinya hanya data contoh dari
+seeder, jadi dibiarkan apa adanya; data yang dibuat setelah itu sudah benar WIB.
