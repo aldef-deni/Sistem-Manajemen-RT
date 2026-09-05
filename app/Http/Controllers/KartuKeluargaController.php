@@ -78,13 +78,13 @@ class KartuKeluargaController extends Controller
         DB::transaction(function () use ($validated, $filePath) {
             $kk = KartuKeluarga::create([
                 'no_kk'     => $validated['no_kk'],
-                'rt'        => $validated['rt'],
-                'rw'        => $validated['rw'],
+                'rt'        => $validated['rt'] ?? null,
+                'rw'        => $validated['rw'] ?? null,
                 'alamat'    => $validated['alamat'],
-                'desa'      => $validated['desa'],
-                'kecamatan' => $validated['kecamatan'],
-                'kabupaten' => $validated['kabupaten'],
-                'kode_pos'  => $validated['kode_pos'],
+                'desa'      => $validated['desa'] ?? null,
+                'kecamatan' => $validated['kecamatan'] ?? null,
+                'kabupaten' => $validated['kabupaten'] ?? null,
+                'kode_pos'  => $validated['kode_pos'] ?? null,
                 'file_kk'   => $filePath,
             ]);
 
@@ -148,13 +148,13 @@ class KartuKeluargaController extends Controller
         DB::transaction(function () use ($validated, $kartu_keluarga, $filePath) {
             $kartu_keluarga->update([
                 'no_kk'     => $validated['no_kk'],
-                'rt'        => $validated['rt'],
-                'rw'        => $validated['rw'],
+                'rt'        => $validated['rt'] ?? null,
+                'rw'        => $validated['rw'] ?? null,
                 'alamat'    => $validated['alamat'],
-                'desa'      => $validated['desa'],
-                'kecamatan' => $validated['kecamatan'],
-                'kabupaten' => $validated['kabupaten'],
-                'kode_pos'  => $validated['kode_pos'],
+                'desa'      => $validated['desa'] ?? null,
+                'kecamatan' => $validated['kecamatan'] ?? null,
+                'kabupaten' => $validated['kabupaten'] ?? null,
+                'kode_pos'  => $validated['kode_pos'] ?? null,
                 'file_kk'   => $filePath,
             ]);
 
