@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BerandaController;
 use App\Http\Controllers\Api\InformasiController;
+use App\Http\Controllers\Api\KelolaController;
 use App\Http\Controllers\Api\LayananController;
 use App\Http\Controllers\Api\ProfilApiController;
 use Illuminate\Support\Facades\Route;
@@ -42,4 +43,30 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('pengaduan/{pengaduan}', [LayananController::class, 'pengaduanDetail']);
     Route::get('polling', [LayananController::class, 'polling']);
     Route::post('polling/{polling}/pilih', [LayananController::class, 'pilihPolling']);
+
+    /*
+    |----------------------------------------------------------------------
+    | Pengurus RT ke atas
+    |----------------------------------------------------------------------
+    */
+    Route::middleware('role:admin,ketua,pengurus')->prefix('kelola')->group(function () {
+        Route::get('ringkasan', [KelolaController::class, 'ringkasan']);
+        Route::get('warga', [KelolaController::class, 'warga']);
+        Route::get('kas', [KelolaController::class, 'kas']);
+        Route::get('iuran', [KelolaController::class, 'iuran']);
+        Route::patch('iuran/{iuran}/lunas', [KelolaController::class, 'tandaiLunas']);
+        Route::patch('pengaduan/{pengaduan}/status', [KelolaController::class, 'ubahStatusPengaduan']);
+        Route::post('pengaduan/{pengaduan}/balas', [KelolaController::class, 'balasPengaduan']);
+    });
+
+    /*
+    |----------------------------------------------------------------------
+    | Administrator & Ketua RT
+    |----------------------------------------------------------------------
+    */
+    Route::middleware('role:admin,ketua')->prefix('kelola')->group(function () {
+        Route::get('akun', [KelolaController::class, 'akun']);
+        Route::patch('akun/{akun}/peran', [KelolaController::class, 'ubahPeran']);
+        Route::patch('akun/{akun}/reset-password', [KelolaController::class, 'resetPassword']);
+    });
 });
