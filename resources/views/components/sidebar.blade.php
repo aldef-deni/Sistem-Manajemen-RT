@@ -194,26 +194,27 @@
 
     /* ---- Merek Aldef Tech di kepala sidebar ---- */
     .sidebar-brand {
-        padding: 1.15rem 1rem 1rem;
+        padding: 1.35rem 1rem 1.1rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
-    .sidebar-plate {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.7rem 0.9rem;
-        border-radius: 0.8rem;
-        background: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.55);
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
+    /* Logo berdiri sendiri tanpa plate: gradasinya sudah cerah dan justru
+       paling kuat di atas latar gelap sidebar. Lebar 180px pada sidebar 250px
+       menyisakan nafas kiri-kanan tanpa membuatnya tampak mungil. */
+    .sidebar-logo {
+        display: block;
+        width: 180px;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+        transition: transform 0.18s ease, filter 0.18s ease;
     }
-    .sidebar-brand a:hover .sidebar-plate {
+    .sidebar-brand a:hover .sidebar-logo {
         transform: translateY(-1px);
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.34), inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+        filter: brightness(1.08);
     }
     .sidebar-brand-sub {
         display: block;
-        margin-top: 0.6rem;
+        margin-top: 0.7rem;
         text-align: center;
         font-size: 10px;
         font-weight: 600;
@@ -231,11 +232,9 @@
             ditulis di bawahnya sebagai baris tipis, bukan mengulang merek.
         --}}
         <a href="{{ route('dashboard') }}" class="block group">
-            <span class="sidebar-plate">
-                <img src="{{ asset('images/aldef-landscape.png') }}"
-                     alt="Aldef Tech"
-                     class="h-7 w-auto block">
-            </span>
+            <img src="{{ asset('images/aldef-landscape.png') }}"
+                 alt="Aldef Tech"
+                 class="sidebar-logo">
             <span class="sidebar-brand-sub">Sistem Manajemen RT</span>
         </a>
     </div>

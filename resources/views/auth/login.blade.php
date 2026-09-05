@@ -10,16 +10,9 @@
         <div class="login-left md:w-[38%] p-8 md:p-10 flex flex-col justify-between text-white relative z-10">
             <div>
                 {{-- Logo Aldef Tech --}}
-                {{--
-                    Logo landscape berisi tinta gelap di atas latar transparan,
-                    jadi di panel gelap ini ia diletakkan pada plate terang —
-                    perlakuan lockup, bukan tambalan.
-                --}}
-                <div class="brand-plate mb-7">
-                    <img src="{{ asset('images/aldef-landscape.png') }}"
-                         alt="Aldef Tech"
-                         class="h-9 w-auto block">
-                </div>
+                <img src="{{ asset('images/aldef-landscape.png') }}"
+                     alt="Aldef Tech"
+                     class="h-14 md:h-16 w-auto block mb-7 -ml-1">
 
                 {{-- Title --}}
                 <h1 class="text-2xl md:text-3xl font-extrabold leading-tight mb-3">
