@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 #
-# Auto-deploy Sistem Manajemen RT
-# Dijalankan DI SERVER (aaPanel/VPS), dipicu oleh GitHub Actions atau webhook.
+# Deploy Sistem Manajemen RT ke rt.aldeftech.com
 #
-#   bash deploy.sh                 -> deploy normal
-#   BUILD_ASSETS=0 bash deploy.sh  -> lewati build Vite (kalau Node tidak ada di server)
-#   SEED=1 bash deploy.sh          -> jalankan db:seed setelah migrate
+# Dijalankan DI SERVER (VM rumahchiara, aaPanel). Lihat DEPLOY.md.
+#
+#   cd /www/wwwroot/rt.aldeftech.com && bash deploy.sh
+#
+#   BUILD_ASSETS=0 bash deploy.sh  -> lewati build Vite
+#   SEED=1 bash deploy.sh          -> jalankan db:seed setelah migrate (jarang dipakai)
+#
+# Aman diulang. .env dan public/uploads tidak pernah disentuh.
 #
 set -euo pipefail
 

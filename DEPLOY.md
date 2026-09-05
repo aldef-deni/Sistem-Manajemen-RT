@@ -1,211 +1,134 @@
-# Auto Deploy — Sistem Manajemen RT
+# Deploy Sistem Manajemen RT ke rt.aldeftech.com
 
-Setiap `git push` ke branch **`main`** akan otomatis men-deploy ke
-**https://rt.aldeftech.com**.
+Server: VM GCP **rumahchiara** (`aldef-tech`, zona `asia-southeast2-b`, IP `34.50.78.9`),
+Ubuntu, dikelola **aaPanel** — VM yang sama dengan corearsitek.aldeftech.com.
 
-```
-push ke main  ->  GitHub Actions  ->  npm run build (aset Vite)
-                                  ->  kirim public/build ke server (scp)
-                                  --ssh-->  bash deploy.sh di server
-```
+Deploy dilakukan **lewat SSH langsung**, bukan GitHub Actions. Alurnya:
+commit → push ke `main` → SSH ke server → `bash deploy.sh`.
 
-Aset front-end dibangun **di GitHub**, bukan di VPS — jadi server tidak perlu
-Node.js dan tidak kehabisan RAM saat build.
+| Komponen | Lokasi / versi |
+|---|---|
+| Folder aplikasi | `/www/wwwroot/rt.aldeftech.com` |
+| Running directory (aaPanel) | `/www/wwwroot/rt.aldeftech.com/public` |
+| Repo | https://github.com/aldef-deni/Sistem-Manajemen-RT (branch `main`) |
+| PHP | 8.4 — `/www/server/php/84/bin/php` |
+| Composer | `/home/aldeftech/bin/composer` |
+| Node / npm | v22 / v9 (`/usr/bin/node`) — aset Vite dibangun di server |
+| Database | MySQL 8.0, `sql_rt_aldeftech_com` |
+| User pemilik berkas | `aldeftech:www` |
+| User SSH | `aldeftech` (tanpa sudo) |
+| User root | `ubuntu` lewat terminal aaPanel, atau `sudo` dari sana |
 
-File yang terlibat:
-
-| File | Jalan di mana | Fungsi |
-|---|---|---|
-| `.github/workflows/deploy.yml` | GitHub | Terpicu saat push, SSH ke server |
-| `deploy.sh` | Server | Pull, composer, migrate, cache, hak akses |
-| `deploy.conf` | Server (opsional, tidak di git) | Menimpa setelan per-server |
-
----
-
-## 1. Siapkan aplikasi di server (sekali saja)
-
-SSH ke VPS, lalu clone repo ke folder situs aaPanel:
+## Masuk ke server
 
 ```bash
-cd /www/wwwroot
-rm -rf rt.aldeftech.com                # kosongkan folder bawaan aaPanel
-git clone https://github.com/aldef-deni/Sistem-Manajemen-RT.git rt.aldeftech.com
-cd rt.aldeftech.com
-
-cp .env.example .env
-nano .env                              # isi APP_URL, DB, dll (lihat bagian 4)
-
-composer install --no-dev --optimize-autoloader
-php artisan key:generate
-php artisan migrate --force
-php artisan db:seed --force            # data awal + akun pengurus
-php artisan storage:link
-
-chown -R www:www storage bootstrap/cache public/uploads
-chmod -R 775 storage bootstrap/cache public/uploads
+gcloud compute ssh rumahchiara --zone=asia-southeast2-b
 ```
 
-Di aaPanel, set **Document Root** situs ke `/www/wwwroot/rt.aldeftech.com/public`
-(bukan folder root-nya) — ini wajib untuk Laravel.
-
-Kalau repo-nya privat, gunakan URL SSH (`git@github.com:...`) dan daftarkan
-public key server sebagai **Deploy Key** di GitHub → repo → Settings → Deploy keys.
-
----
-
-## 2. Buat SSH key untuk GitHub Actions
-
-Jangan pakai kunci pribadi Anda — buat kunci khusus deploy. **Di server:**
+## Deploy rutin
 
 ```bash
-ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/gh_deploy -N ""
-cat ~/.ssh/gh_deploy.pub >> ~/.ssh/authorized_keys
-chmod 600 ~/.ssh/authorized_keys
-
-cat ~/.ssh/gh_deploy        # <- ini PRIVATE key, salin SELURUHNYA
+cd /www/wwwroot/rt.aldeftech.com && bash deploy.sh
 ```
 
-Salin mulai dari `-----BEGIN OPENSSH PRIVATE KEY-----`
-sampai `-----END OPENSSH PRIVATE KEY-----` (termasuk kedua baris itu).
-
----
-
-## 3. Isi Secrets di GitHub
-
-Repo → **Settings → Secrets and variables → Actions → New repository secret**.
-Buat 5 secret berikut:
-
-| Nama secret | Isi | Contoh |
-|---|---|---|
-| `SSH_HOST` | IP / hostname VPS | `34.101.155.148` |
-| `SSH_PORT` | Port SSH | `22` (aaPanel sering mengubahnya, cek Security) |
-| `SSH_USER` | User SSH | `root` |
-| `SSH_KEY` | Isi file `~/.ssh/gh_deploy` (private key) | `-----BEGIN OPENSSH...` |
-| `APP_DIR` | Path aplikasi di server | `/www/wwwroot/rt.aldeftech.com` |
-
-> Kalau firewall aaPanel membatasi IP yang boleh SSH, runner GitHub tidak akan
-> bisa masuk (IP-nya berubah-ubah). Dalam kasus itu, pakai **cara alternatif
-> webhook** di bagian 6.
-
----
-
-## 4. `.env` di server
-
-`.env` **tidak** ikut di-push (sudah di `.gitignore`) dan tidak akan tertimpa
-oleh deploy. Isinya minimal:
-
-```env
-APP_NAME="Sistem Manajemen RT"
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://rt.aldeftech.com
-
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=nama_database
-DB_USERNAME=user_database
-DB_PASSWORD=sandi_database
-
-SESSION_DRIVER=database
-CACHE_STORE=database
-```
-
-`APP_DEBUG=false` itu penting — kalau `true`, pesan error beserta isi `.env`
-bisa terlihat pengunjung.
-
-> Lokal masih memakai `sqlite`. Di server sebaiknya MySQL; buat database-nya
-> lewat aaPanel → Databases.
-
----
-
-## 5. Coba jalankan
+Atau sekali jalan dari mesin lokal:
 
 ```bash
-git add .
-git commit -m "setup auto deploy"
-git push origin main
+gcloud compute ssh rumahchiara --zone=asia-southeast2-b \
+  --command="cd /www/wwwroot/rt.aldeftech.com && bash deploy.sh"
 ```
 
-Pantau di GitHub → tab **Actions**. Di server, log lengkapnya tersimpan di:
+Skrip menarik `main`, memasang dependensi composer, membangun aset Vite,
+menjalankan migrasi, menyegarkan cache, dan memperbaiki hak akses.
+`.env` dan `public/uploads/` tidak pernah disentuh. Log tersimpan di
+`storage/logs/deploy.log`, dan ada file lock supaya dua deploy tidak bertabrakan.
+
+## Setelan per-server: `deploy.conf`
+
+Ada di server, tidak ikut git:
+
+```
+PHP_BIN=/www/server/php/84/bin/php
+COMPOSER_BIN=/home/aldeftech/bin/composer
+BUILD_ASSETS=1
+MAINTENANCE=1
+```
+
+`BUILD_ASSETS=1` karena VM ini punya Node. Kalau suatu saat Node hilang, ubah ke
+`0` lalu bangun aset di lokal dan kirim manual:
 
 ```bash
-tail -f /www/wwwroot/rt.aldeftech.com/storage/logs/deploy.log
+npm run build
+gcloud compute scp --recurse --zone=asia-southeast2-b public/build \
+  rumahchiara:/www/wwwroot/rt.aldeftech.com/public/
 ```
 
-Deploy manual tanpa push: GitHub → Actions → *Deploy ke rt.aldeftech.com* →
-**Run workflow**. Atau langsung di server: `BUILD_ASSETS=0 bash deploy.sh`
-(pakai aset yang sudah ada; untuk membangun ulang aset, jalankan lewat Actions).
+## Hak akses berkas
 
----
+Seluruh folder aplikasi milik `aldeftech:www`, dan **semua direktori diberi bit
+setgid** supaya berkas baru — hasil `git pull`, composer, atau unggahan warga —
+otomatis mewarisi grup `www`. Tanpa itu php-fpm (yang jalan sebagai `www`) tidak
+bisa menulis ke `storage/` dan situs balas HTTP 500 tanpa meninggalkan log.
 
-## 6. Alternatif: webhook aaPanel (kalau SSH dari luar diblokir)
-
-1. aaPanel → **App Store** → pasang plugin **Webhook**.
-2. Tambah hook baru, isi script-nya:
-
-   ```bash
-   #!/bin/bash
-   cd /www/wwwroot/rt.aldeftech.com && bash deploy.sh
-   ```
-
-3. Salin URL webhook yang muncul (`http://IP:PORT/hook?access_key=...`).
-4. GitHub → repo → Settings → **Webhooks → Add webhook**:
-   - Payload URL: URL dari langkah 3
-   - Content type: `application/json`
-   - Event: *Just the push event*
-
-Kalau memakai cara ini, file `.github/workflows/deploy.yml` boleh dihapus.
-
----
-
-## 7. Setelan tambahan (`deploy.conf` di server)
-
-Buat file `deploy.conf` di folder aplikasi **di server** bila perlu:
+Kalau kepemilikan pernah kacau lagi, perbaiki dari **terminal aaPanel sebagai
+`ubuntu`** (user `aldeftech` tidak punya sudo):
 
 ```bash
-PHP_BIN=/www/server/php/83/bin/php   # sesuaikan versi, cek: ls /www/server/php/
-BUILD_ASSETS=0          # default dari workflow: aset sudah dibangun di GitHub
-MAINTENANCE=0           # jangan aktifkan halaman maintenance saat deploy
-SEED=0                  # 1 = jalankan db:seed tiap deploy (biasanya jangan)
-CHOWN_TO=""             # isi "aldeftech:www" HANYA bila deploy dijalankan sebagai root
-PHP_FPM_SERVICE=""      # isi php-fpm-83 HANYA bila deploy dijalankan sebagai root
+sudo chown -R aldeftech:www /www/wwwroot/rt.aldeftech.com
+sudo chmod -R g+rwX /www/wwwroot/rt.aldeftech.com/{storage,bootstrap/cache,public/uploads}
+sudo find /www/wwwroot/rt.aldeftech.com -type d -exec chmod g+s {} +
 ```
 
-Cari path PHP yang benar dengan: `ls /www/server/php/`
+> **Jangan** menekan tombol *Set directory permissions* di aaPanel File Manager
+> untuk situs ini — kepemilikan kembali ke `www:www` dan `git pull` langsung gagal.
+> `public/.user.ini` diproteksi immutable oleh panel, jadi `chown -R` selalu
+> gagal di berkas itu. Abaikan, memang tidak perlu diubah.
 
----
+## Pemasangan awal (sudah dikerjakan, disimpan sebagai rujukan)
+
+1. Repo di-clone ke folder situs bawaan aaPanel; `index.html`, `404.html`,
+   `502.html`, `.well-known/`, dan `.user.ini` milik panel dibiarkan.
+2. `.env` ditulis manual (bukan dari `.env.example`) dengan `APP_ENV=production`,
+   `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`, dan kredensial MySQL.
+3. `composer install --no-dev`, `key:generate`, `migrate --force`,
+   `db:seed --force`, `storage:link`.
+4. aaPanel → Website → Settings: **Running directory `/public`**,
+   **URL rewrite preset `laravel5`**, **PHP 8.4**.
+5. `php-cli.ini` punya baris `extension = zip.so` ganda yang memunculkan
+   `PHP Warning: Module "zip" is already loaded` di setiap perintah artisan —
+   duplikatnya sudah di-comment. Perhatikan CLI membaca `php-cli.ini`,
+   sedangkan FPM membaca `php.ini`; keduanya berkas terpisah.
+
+## Seeder
+
+`db:seed` dijalankan **sekali saja** saat pemasangan. Jangan diulang di server:
+`AdminSeeder` memakai `updateOrCreate`, sehingga password akun yang sudah diganti
+akan dikembalikan ke nilai bawaan. `deploy.sh` sengaja tidak memanggil seeder.
+
+Akun bawaan: `admin` / `ketua` / `pengurus` / `warga`, password awal `password`.
+**Ganti segera** — repo ini publik dan seeder-nya terbaca siapa saja:
+
+```bash
+php artisan tinker --execute="\App\Models\User::where('username','admin')->update(['password' => bcrypt('sandi-baru')]);"
+```
+
+Login menerima username, email, atau nama lengkap ([LoginController.php:29-31](app/Http/Controllers/Auth/LoginController.php#L29-L31)).
 
 ## Yang perlu diperhatikan
 
-**Aset Vite tidak ada di repo.** `public/build/` di-gitignore dan dikirim ke
-server oleh GitHub Actions setiap deploy. Kalau Anda pernah `git clone` manual
-lalu membuka situs dan muncul *"Vite manifest not found"*, itu wajar — jalankan
-sekali deploy lewat Actions (atau **Run workflow**) dan aset akan terkirim.
+**`deploy.sh` menjalankan `git reset --hard origin/main`.** Jangan pernah mengedit
+berkas langsung di server — perubahannya hilang di deploy berikutnya. Berkas tak
+terlacak aman: `.env`, `deploy.conf`, `storage/`, `public/uploads/`, `vendor/`,
+`node_modules/`, dan berkas bawaan aaPanel.
 
+**Aset Vite tidak ada di repo.** `public/build/` di-gitignore dan dibangun ulang
+di server tiap deploy. Kalau situs tampil tanpa CSS atau melempar
+*"Vite manifest not found"*, jalankan `bash deploy.sh` sekali lagi.
 
+**Migrasi bersifat maju saja.** `deploy.sh` hanya `migrate --force`, tidak pernah
+`migrate:fresh`. Data di server tidak akan terhapus oleh deploy.
 
-**`git reset --hard` di `deploy.sh`.** Deploy menyamakan file yang dilacak git
-dengan isi `main`. Artinya: **jangan pernah mengedit file langsung di server** —
-perubahan itu akan hilang di deploy berikutnya. Semua perubahan lewat commit.
-
-File yang *tidak* dilacak git aman dan tidak tersentuh: `.env`, `storage/`,
-`public/uploads/` (foto profil, KK, bukti pengaduan), `vendor/`, `node_modules/`.
-
-**Folder unggahan sudah dikeluarkan dari repo.** `public/uploads/` kini hanya
-menyimpan struktur foldernya (lewat berkas `.gitkeep`); isinya — KK, bukti
-pengaduan, foto pengurus dan profil — milik masing-masing server dan tidak
-pernah ikut push maupun tertimpa deploy.
-
-> Kalau server sudah pernah di-clone sebelum perubahan ini, deploy pertama akan
-> menghapus `public/uploads/profil/foto_1_1788404641.png` di server (foto profil
-> contoh yang dulu ikut ter-commit). Backup dulu bila masih dipakai:
-> `cp -r public/uploads /root/uploads-backup`
-
-**Migrasi bersifat maju saja.** `deploy.sh` menjalankan `migrate --force`, tidak
-pernah `migrate:fresh`. Data di server tidak akan terhapus oleh deploy.
-
-**Butuh rollback?** Di server:
+**Rollback:**
 
 ```bash
 cd /www/wwwroot/rt.aldeftech.com
@@ -214,5 +137,11 @@ git reset --hard <commit-lama>
 php artisan optimize:clear && php artisan config:cache && php artisan route:cache
 ```
 
-Rollback kode tidak membatalkan migrasi database — kalau commit itu menambah
-tabel/kolom, jalankan `php artisan migrate:rollback` secara terpisah.
+Rollback kode tidak membatalkan migrasi. Kalau commit itu menambah tabel/kolom,
+jalankan `php artisan migrate:rollback` terpisah.
+
+## Timezone
+
+`config/app.php` masih `'timezone' => 'UTC'` (hardcoded, `APP_TIMEZONE` di `.env`
+tidak berpengaruh). Untuk jadwal kegiatan dan notulen rapat, jamnya meleset 7 jam
+dari WIB. Perbaikannya satu baris: `env('APP_TIMEZONE', 'Asia/Jakarta')`.
