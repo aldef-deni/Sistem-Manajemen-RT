@@ -65,7 +65,7 @@ class TabunganController extends Controller
             'anggota_keluarga_id' => 'required|exists:anggota_keluarga,id',
             'rekening_kas_id' => 'required|exists:rekening_kas,id',
             'jenis_tabungan' => 'required|in:sukarela,wajib,investasi',
-            'nominal' => 'required|numeric|min:10000',
+            'nominal' => 'required|integer|min:10000|max:100000000',
             'keterangan' => 'nullable|string',
         ]);
 
@@ -124,14 +124,18 @@ class TabunganController extends Controller
     {
         $request->validate([
             'anggota_keluarga_id' => 'required|exists:anggota_keluarga,id',
-            'nominal' => 'required|numeric|min:10000',
+            'nominal' => 'required|integer|min:10000|max:100000000',
             'keterangan' => 'required|string|min:3',
         ]);
 
         DB::beginTransaction();
         try {
+            // lockForUpdate menahan baris sampai transaksi selesai. Tanpa itu
+            // dua penarikan yang tiba bersamaan sama-sama lolos pemeriksaan
+            // saldo dan rekening bisa menjadi minus.
             $tabungan = Tabungan::where('anggota_keluarga_id', $request->anggota_keluarga_id)
                 ->where('status', 'aktif')
+                ->lockForUpdate()
                 ->firstOrFail();
 
             if ($tabungan->saldo < $request->nominal) {

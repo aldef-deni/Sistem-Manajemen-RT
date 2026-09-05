@@ -76,6 +76,14 @@ class AkunController extends Controller
     public function update(Request $request, User $akun)
     {
         $this->authorizeManageAkun();
+
+        // Akun Administrator hanya boleh diubah oleh dirinya sendiri. Tanpa
+        // penjagaan ini seorang Ketua RT bisa mengganti password Administrator
+        // lalu masuk sebagai Administrator.
+        if ($akun->role === 'admin' && $akun->id !== auth()->id()) {
+            return back()->with('error', 'Akun Administrator hanya dapat diubah oleh pemiliknya sendiri.');
+        }
+
         $validated = $request->validate([
             'name'     => 'required|string|max:100',
             'username' => 'required|string|max:50|unique:users,username,' . $akun->id,
@@ -90,7 +98,9 @@ class AkunController extends Controller
             'username' => $validated['username'],
             'email'    => $validated['email'],
             'no_hp'    => $validated['no_hp'] ?? null,
-            'role'     => $validated['role'],
+            // Peran admin tidak ikut diubah — daftar pilihan peran memang
+            // tidak memuat 'admin', jadi menyimpannya akan menurunkan peran.
+            'role'     => $akun->role === 'admin' ? 'admin' : $validated['role'],
         ]);
 
         if (! empty($validated['password'])) {

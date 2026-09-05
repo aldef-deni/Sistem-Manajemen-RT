@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\SafeUpload;
+
 use App\Models\AnggotaKeluarga;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -61,16 +63,18 @@ class ProfilController extends Controller
         ]);
 
         $user = auth()->user();
-        $file = $request->file('foto');
-        $filename = 'foto_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path('uploads/profil'), $filename);
+        $lama = $user->foto;
 
-        // Hapus foto lama jika ada
-        if ($user->foto && file_exists(public_path($user->foto))) {
-            @unlink(public_path($user->foto));
-        }
+        $path = SafeUpload::store(
+            $request->file('foto'),
+            'profil',
+            'foto_' . $user->id,
+            SafeUpload::IMAGE
+        );
 
-        $user->update(['foto' => 'uploads/profil/' . $filename]);
+        SafeUpload::delete($lama);
+
+        $user->update(['foto' => $path]);
 
         return back()->with('success', 'Foto profil berhasil diperbarui!');
     }
@@ -82,9 +86,7 @@ class ProfilController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->foto && file_exists(public_path($user->foto))) {
-            @unlink(public_path($user->foto));
-        }
+        SafeUpload::delete($user->foto);
         $user->update(['foto' => null]);
 
         return back()->with('success', 'Foto profil berhasil dihapus!');

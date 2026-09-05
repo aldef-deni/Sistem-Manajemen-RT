@@ -71,7 +71,7 @@ class IuranWargaController extends Controller
             'jenis_iuran_id' => 'required|exists:jenis_iuran,id',
             'bulan' => 'required|integer|min:1|max:12',
             'tahun' => 'required|integer|min:2020|max:2030',
-            'nominal' => 'required|integer|min:0',
+            'nominal' => 'required|integer|min:0|max:100000000',
             'catatan' => 'nullable|string|max:500',
         ]);
 
@@ -112,7 +112,7 @@ class IuranWargaController extends Controller
     public function update(Request $request, IuranWarga $iuran_warga)
     {
         $request->validate([
-            'nominal' => 'required|integer|min:0',
+            'nominal' => 'required|integer|min:0|max:100000000',
             'catatan' => 'nullable|string|max:500',
         ]);
 

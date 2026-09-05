@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+
 class PageController extends Controller
 {
     protected array $pages = [
@@ -45,8 +47,12 @@ class PageController extends Controller
         'profil-saya'       => ['title' => 'Profil Saya',       'section' => 'Akun'],
     ];
 
-    public function show(string $page)
+    public function show(Request $request, ?string $page = null)
     {
+        // Rute halaman ini didaftarkan sebagai URL literal tanpa parameter,
+        // jadi nama halaman diambil dari path permintaan.
+        $page ??= $request->path();
+
         if (!isset($this->pages[$page])) {
             abort(404);
         }

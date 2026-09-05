@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\SafeUpload;
+
 use App\Models\Pengaduan;
 use App\Models\PengaduanBalasan;
 use Illuminate\Http\Request;
@@ -47,17 +49,19 @@ class PengaduanController extends Controller
             'kategori' => 'required|string|max:50',
             'isi_pengaduan' => 'required|string',
             'privasi' => 'required|in:publik,privat',
-            'lampiran' => 'nullable|file|max:5120',
+            'lampiran' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
         ]);
 
         $validated['user_id'] = Auth::id();
         $validated['kode_tiket'] = $this->generateKodeTiket();
 
         if ($request->hasFile('lampiran')) {
-            $file = $request->file('lampiran');
-            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/pengaduan'), $filename);
-            $validated['lampiran'] = 'uploads/pengaduan/' . $filename;
+            $validated['lampiran'] = SafeUpload::store(
+                $request->file('lampiran'),
+                'pengaduan',
+                'lampiran',
+                SafeUpload::DOCUMENT
+            );
         }
 
         Pengaduan::create($validated);

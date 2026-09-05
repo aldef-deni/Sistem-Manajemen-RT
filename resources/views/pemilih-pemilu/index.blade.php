@@ -8,16 +8,18 @@
 
 @section('content')
 @php
-    function hitungUmur($tgl) {
+    // Closure, bukan fungsi global: view yang sama bisa dirender lebih dari
+    // sekali dalam satu proses PHP dan deklarasi ulang akan fatal.
+    $hitungUmur = function ($tgl) {
         return (int) floor($tgl->diffInYears(now()));
-    }
-    function getKelompok($umur) {
+    };
+    $getKelompok = function ($umur) {
         if ($umur <= 21) return 'Pemula';
         if ($umur <= 35) return 'Muda';
         if ($umur <= 55) return 'Dewasa';
         return 'Lansia';
-    }
-    function getKelompokColor($k) {
+    };
+    $getKelompokColor = function ($k) {
         return match($k) {
             'Pemula' => 'bg-blue-100 text-blue-700',
             'Muda'   => 'bg-emerald-100 text-emerald-700',
@@ -25,7 +27,7 @@
             'Lansia' => 'bg-purple-100 text-purple-700',
             default  => 'bg-slate-100 text-slate-600',
         };
-    }
+    };
 @endphp
 
 <div class="space-y-5">
@@ -164,9 +166,9 @@
                 <tbody class="divide-y divide-slate-100">
                     @forelse ($pemilih as $i => $p)
                         @php
-                            $umur = hitungUmur($p->tanggal_lahir);
-                            $kelompok = getKelompok($umur);
-                            $kelompokColor = getKelompokColor($kelompok);
+                            $umur = $hitungUmur($p->tanggal_lahir);
+                            $kelompok = $getKelompok($umur);
+                            $kelompokColor = $getKelompokColor($kelompok);
                         @endphp
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <td class="px-4 py-2.5 text-xs text-slate-500 text-center">

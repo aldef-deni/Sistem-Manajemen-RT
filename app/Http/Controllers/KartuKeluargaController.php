@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\SafeUpload;
+
 use App\Models\AnggotaKeluarga;
 use App\Models\KartuKeluarga;
 use Illuminate\Http\Request;
@@ -214,19 +216,16 @@ class KartuKeluargaController extends Controller
             return $old;
         }
 
-        $file = $request->file('file_kk');
-        $dir  = public_path('uploads/kk');
-
-        if (! is_dir($dir)) {
-            mkdir($dir, 0775, true);
-        }
-
-        $name = 'kk-' . now()->format('YmdHis') . '-' . Str::random(6) . '.' . $file->getClientOriginalExtension();
-        $file->move($dir, $name);
+        $path = SafeUpload::store(
+            $request->file('file_kk'),
+            'kk',
+            'kk',
+            ['jpg', 'jpeg', 'png', 'pdf']
+        );
 
         $this->deleteFileKK($old);
 
-        return 'uploads/kk/' . $name;
+        return $path;
     }
 
     private function deleteFileKK(?string $path): void

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\SafeUpload;
+
 use App\Models\StrukturRT;
 use App\Models\PengurusRT;
 use App\Models\SettingRT;
@@ -115,6 +117,7 @@ class PengaturanController extends Controller
             'email' => 'nullable|email|max:100',
             'alamat' => 'nullable|string',
             'keterangan' => 'nullable|string',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         $struktur = StrukturRT::firstOrCreate(['id' => 1]);
@@ -122,10 +125,12 @@ class PengaturanController extends Controller
         $validated['urutan'] = PengurusRT::where('struktur_rt_id', $struktur->id)->max('urutan') + 1;
 
         if ($request->hasFile('foto')) {
-            $file = $request->file('foto');
-            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/pengurus'), $filename);
-            $validated['foto'] = 'uploads/pengurus/' . $filename;
+            $validated['foto'] = SafeUpload::store(
+                $request->file('foto'),
+                'pengurus',
+                'pengurus',
+                SafeUpload::IMAGE
+            );
         }
 
         PengurusRT::create($validated);
@@ -144,13 +149,16 @@ class PengaturanController extends Controller
             'alamat' => 'nullable|string',
             'keterangan' => 'nullable|string',
             'status' => 'nullable|string|in:aktif,tidak_aktif',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         if ($request->hasFile('foto')) {
-            $file = $request->file('foto');
-            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/pengurus'), $filename);
-            $validated['foto'] = 'uploads/pengurus/' . $filename;
+            $validated['foto'] = SafeUpload::store(
+                $request->file('foto'),
+                'pengurus',
+                'pengurus',
+                SafeUpload::IMAGE
+            );
         }
 
         $pengurus->update($validated);

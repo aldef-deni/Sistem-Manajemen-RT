@@ -93,6 +93,41 @@
     }
 
     /*
+     * Saring menu berdasarkan hak akses. Item yang route-nya tidak boleh
+     * dibuka pengguna ini dibuang, begitu pula kelompok yang jadi kosong —
+     * supaya warga tidak melihat pintu yang memang bukan haknya.
+     */
+    foreach ($menu as $gi => $group) {
+        if (! isset($group['items'])) {
+            if (! \App\Support\MenuAccess::boleh($group['route'] ?? null)) {
+                unset($menu[$gi]);
+            }
+            continue;
+        }
+
+        foreach ($group['items'] as $ii => $item) {
+            if (! \App\Support\MenuAccess::boleh($item['route'] ?? null)) {
+                unset($menu[$gi]['items'][$ii]);
+                continue;
+            }
+
+            foreach ($item['children'] ?? [] as $ci => $child) {
+                if (! \App\Support\MenuAccess::boleh($child['route'] ?? null)) {
+                    unset($menu[$gi]['items'][$ii]['children'][$ci]);
+                }
+            }
+        }
+
+        $menu[$gi]['items'] = array_values($menu[$gi]['items']);
+
+        if (empty($menu[$gi]['items'])) {
+            unset($menu[$gi]);
+        }
+    }
+
+    $menu = array_values($menu);
+
+    /*
      * Sebuah item menu dianggap AKTIF bila:
      *  1. nama route-nya sama persis dengan route halaman saat ini, ATAU
      *  2. item bertipe resource (.index) dan sedang berada di salah satu
@@ -101,37 +136,40 @@
      * sehingga 'pengaturan', 'pengaturan.tata-tertib' dan 'pengaturan.kelola-pengurus'
      * tidak pernah menyala bersamaan.
      */
-    function isActive($itemRoute, $currentRoute) {
+    // Ditulis sebagai closure, bukan fungsi global: berkas view yang sama bisa
+    // dirender lebih dari sekali dalam satu proses PHP (uji otomatis, worker
+    // yang hidup lama), dan deklarasi fungsi global akan fatal "Cannot redeclare".
+    $isActive = function ($itemRoute, $currentRoute) {
         if ($itemRoute === $currentRoute) return true;
         if (! str_contains($itemRoute, '.')) return false;
         if (str_ends_with($itemRoute, '.index')) {
             return explode('.', $itemRoute)[0] === explode('.', $currentRoute)[0];
         }
         return false;
-    }
+    };
 
     // Cek apakah salah satu item (termasuk sub-menu di dalamnya) sedang aktif.
-    function anyItemActive($items, $currentRoute) {
+    $anyItemActive = function ($items, $currentRoute) use ($isActive) {
         foreach ($items as $item) {
             $routes = [$item['route']];
             foreach ($item['children'] ?? [] as $child) {
                 $routes[] = $child['route'];
             }
             foreach ($routes as $r) {
-                if (isActive($r, $currentRoute)) return true;
+                if ($isActive($r, $currentRoute)) return true;
             }
         }
         return false;
-    }
+    };
 
     // Sub-menu induk (mis. Umum) terbuka bila route-nya sendiri atau anaknya aktif.
-    function subMenuOpen($sub, $currentRoute) {
-        if (isActive($sub['route'], $currentRoute)) return true;
+    $subMenuOpen = function ($sub, $currentRoute) use ($isActive) {
+        if ($isActive($sub['route'], $currentRoute)) return true;
         foreach ($sub['children'] ?? [] as $child) {
-            if (isActive($child['route'], $currentRoute)) return true;
+            if ($isActive($child['route'], $currentRoute)) return true;
         }
         return false;
-    }
+    };
 @endphp
 
 <style>
@@ -174,12 +212,12 @@
         @foreach($menu as $item)
             @if(isset($item['label']))
                 <a href="{{ route($item['route']) }}"
-                   class="menu-item {{ isActive($item['route'], $currentRoute) ? 'active' : '' }}">
+                   class="menu-item {{ $isActive($item['route'], $currentRoute) ? 'active' : '' }}">
                     {!! $item['icon'] !!}
                     <span>{{ $item['label'] }}</span>
                 </a>
             @elseif(isset($item['group']))
-                <div class="menu-group {{ anyItemActive($item['items'], $currentRoute) ? 'open' : '' }}" data-group>
+                <div class="menu-group {{ $anyItemActive($item['items'], $currentRoute) ? 'open' : '' }}" data-group>
                     <div class="menu-group-label" onclick="this.parentElement.classList.toggle('open')">
                         <span>{{ $item['group'] }}</span>
                         <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,10 +227,10 @@
                     <div class="menu-group-items">
                         @foreach($item['items'] as $sub)
                             @if(isset($sub['children']))
-                                <div class="menu-sub {{ subMenuOpen($sub, $currentRoute) ? 'open' : '' }}">
+                                <div class="menu-sub {{ $subMenuOpen($sub, $currentRoute) ? 'open' : '' }}">
                                     <div class="menu-sub-head">
                                         <a href="{{ route($sub['route']) }}"
-                                           class="menu-item {{ isActive($sub['route'], $currentRoute) ? 'active' : '' }}">
+                                           class="menu-item {{ $isActive($sub['route'], $currentRoute) ? 'active' : '' }}">
                                             {!! $sub['icon'] !!}
                                             <span>{{ $sub['label'] }}</span>
                                         </a>
@@ -206,7 +244,7 @@
                                     <div class="menu-sub-items">
                                         @foreach($sub['children'] as $child)
                                             <a href="{{ route($child['route']) }}"
-                                               class="menu-item {{ isActive($child['route'], $currentRoute) ? 'active' : '' }}">
+                                               class="menu-item {{ $isActive($child['route'], $currentRoute) ? 'active' : '' }}">
                                                 {!! $child['icon'] !!}
                                                 <span>{{ $child['label'] }}</span>
                                             </a>
@@ -215,7 +253,7 @@
                                 </div>
                             @else
                                 <a href="{{ route($sub['route']) }}"
-                                   class="menu-item {{ isActive($sub['route'], $currentRoute) ? 'active' : '' }}">
+                                   class="menu-item {{ $isActive($sub['route'], $currentRoute) ? 'active' : '' }}">
                                     {!! $sub['icon'] !!}
                                     <span>{{ $sub['label'] }}</span>
                                 </a>

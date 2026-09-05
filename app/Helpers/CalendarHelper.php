@@ -97,7 +97,9 @@ class CalendarHelper
      */
     public static function getDaysInMonth($month, $year)
     {
-        return cal_days_in_month(CAL_GREGORIAN, $month, $year);
+        // date('t') memberi hasil yang sama tanpa ekstensi calendar, yang
+        // tidak terpasang pada PHP bawaan aaPanel di server produksi.
+        return (int) date('t', mktime(0, 0, 0, (int) $month, 1, (int) $year));
     }
 
     /**

@@ -54,8 +54,15 @@ class KasRTController extends Controller
 
         $rekenings = RekeningKas::where('is_active', true)->get();
 
-        $years = TransaksiKas::selectRaw("DISTINCT strftime('%Y', tanggal) as year")
-            ->pluck('year')->sortDesc();
+        // Diambil di PHP, bukan lewat fungsi tanggal bawaan database, supaya
+        // kueri yang sama jalan di SQLite (lokal) dan MySQL (produksi).
+        $years = TransaksiKas::query()
+            ->whereNotNull('tanggal')
+            ->pluck('tanggal')
+            ->map(fn ($tanggal) => (int) $tanggal->format('Y'))
+            ->unique()
+            ->sortDesc()
+            ->values();
 
         return view('kas-rt.index', compact(
             'transaksi', 'pemasukanBulan', 'pengeluaranBulan', 'saldoTotal',
@@ -85,7 +92,7 @@ class KasRTController extends Controller
             'tanggal' => 'required|date',
             'kategori' => 'required|string',
             'rekening_kas_id' => 'required|exists:rekening_kas,id',
-            'nominal' => 'required|numeric|min:1',
+            'nominal' => 'required|integer|min:1|max:100000000',
             'keterangan' => 'nullable|string',
         ]);
 
@@ -134,7 +141,7 @@ class KasRTController extends Controller
             'tanggal' => 'required|date',
             'kategori' => 'required|string',
             'rekening_kas_id' => 'required|exists:rekening_kas,id',
-            'nominal' => 'required|numeric|min:1',
+            'nominal' => 'required|integer|min:1|max:100000000',
             'keterangan' => 'nullable|string',
             'bukti_dokumen' => 'nullable|file|max:2048|mimes:jpg,jpeg,png,pdf',
         ]);

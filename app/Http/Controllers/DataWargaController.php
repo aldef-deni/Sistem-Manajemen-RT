@@ -45,21 +45,11 @@ class DataWargaController extends Controller
 
         // Age distribution
         $now = now();
-        $balita = AnggotaKeluarga::whereNotNull('tanggal_lahir')
-            ->whereRaw("strftime('%Y', 'now') - strftime('%Y', tanggal_lahir) BETWEEN 0 AND 4")
-            ->count();
-        $anak = AnggotaKeluarga::whereNotNull('tanggal_lahir')
-            ->whereRaw("strftime('%Y', 'now') - strftime('%Y', tanggal_lahir) BETWEEN 5 AND 12")
-            ->count();
-        $remaja = AnggotaKeluarga::whereNotNull('tanggal_lahir')
-            ->whereRaw("strftime('%Y', 'now') - strftime('%Y', tanggal_lahir) BETWEEN 13 AND 17")
-            ->count();
-        $pemuda = AnggotaKeluarga::whereNotNull('tanggal_lahir')
-            ->whereRaw("strftime('%Y', 'now') - strftime('%Y', tanggal_lahir) BETWEEN 18 AND 59")
-            ->count();
-        $lansia = AnggotaKeluarga::whereNotNull('tanggal_lahir')
-            ->whereRaw("strftime('%Y', 'now') - strftime('%Y', tanggal_lahir) >= 60")
-            ->count();
+        $balita = AnggotaKeluarga::usiaAntara(0, 4)->count();
+        $anak   = AnggotaKeluarga::usiaAntara(5, 12)->count();
+        $remaja = AnggotaKeluarga::usiaAntara(13, 17)->count();
+        $pemuda = AnggotaKeluarga::usiaAntara(18, 59)->count();
+        $lansia = AnggotaKeluarga::usiaAntara(60)->count();
 
         // Status distribution
         $janda = AnggotaKeluarga::where('status_hubungan', 'Janda')->count();

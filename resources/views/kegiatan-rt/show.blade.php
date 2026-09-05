@@ -24,9 +24,31 @@
 
             {{-- Artikel --}}
             <div style="background:white;border-radius:16px;padding:28px;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
-                @php $badge = $kegiatan->kategori_badge; $statusBadge = $kegiatan->status_badge; @endphp
+                @php
+                    $badge = $kegiatan->kategori_badge;
+                    $statusBadge = $kegiatan->status_badge;
+
+                    // Rantai ternary bersarang tanpa kurung adalah kesalahan
+                    // fatal sejak PHP 8, jadi pemetaan warnanya ditulis biasa.
+                    $peta = [
+                        'slate'  => ['#f1f5f9', '#475569'],
+                        'purple' => ['#faf5ff', '#7c3aed'],
+                        'green'  => ['#f0fdf4', '#16a34a'],
+                        'red'    => ['#fef2f2', '#dc2626'],
+                        'blue'   => ['#eff6ff', '#2563eb'],
+                    ];
+
+                    [$badgeBg, $badgeFg] = ['#fff7ed', '#ea580c'];
+
+                    foreach ($peta as $warna => $pasangan) {
+                        if (str_contains($badge['bg'] ?? '', $warna)) {
+                            [$badgeBg, $badgeFg] = $pasangan;
+                            break;
+                        }
+                    }
+                @endphp
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
-                    <span style="padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;background:{{ str_contains($badge['bg'], 'slate') ? '#f1f5f9' : str_contains($badge['bg'], 'purple') ? '#faf5ff' : str_contains($badge['bg'], 'green') ? '#f0fdf4' : str_contains($badge['bg'], 'red') ? '#fef2f2' : str_contains($badge['bg'], 'blue') ? '#eff6ff' : '#fff7ed' }};color:{{ str_contains($badge['bg'], 'slate') ? '#475569' : str_contains($badge['bg'], 'purple') ? '#7c3aed' : str_contains($badge['bg'], 'green') ? '#16a34a' : str_contains($badge['bg'], 'red') ? '#dc2626' : str_contains($badge['bg'], 'blue') ? '#2563eb' : '#ea580c' }}">
+                    <span style="padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;background:{{ $badgeBg }};color:{{ $badgeFg }}">
                         {{ $kegiatan->kategori }}
                     </span>
                     <span style="padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;{{ $kegiatan->status === 'publish' ? 'background:#f0fdf4;color:#16a34a' : ($kegiatan->status === 'arsip' ? 'background:#f1f5f9;color:#64748b' : 'background:#fffbeb;color:#d97706') }}">

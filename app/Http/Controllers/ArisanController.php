@@ -43,7 +43,7 @@ class ArisanController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:255',
-            'nominal_iuran' => 'required|numeric|min:1000',
+            'nominal_iuran' => 'required|integer|min:1000|max:100000000',
             'periode' => 'required|in:mingguan,bulanan',
             'tanggal_mulai' => 'required|date',
             'mode_undian' => 'required|in:manual,otomatis',
@@ -87,7 +87,7 @@ class ArisanController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:255',
-            'nominal_iuran' => 'required|numeric|min:1000',
+            'nominal_iuran' => 'required|integer|min:1000|max:100000000',
             'periode' => 'required|in:mingguan,bulanan',
             'tanggal_mulai' => 'required|date',
             'mode_undian' => 'required|in:manual,otomatis',

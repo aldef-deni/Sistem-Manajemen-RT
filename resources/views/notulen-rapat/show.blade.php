@@ -54,7 +54,7 @@
                         </div>
                         <div>
                             <div style="font-size:12px;color:#94a3b8;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">Tanggal</div>
-                            <div style="font-weight:600;color:#1e293b">{{ $notulan->tanggal->format('d M Y') }}</div>
+                            <div style="font-weight:600;color:#1e293b">{{ $notulen->tanggal->format('d M Y') }}</div>
                         </div>
                         <div>
                             <div style="font-size:12px;color:#94a3b8;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">Waktu</div>

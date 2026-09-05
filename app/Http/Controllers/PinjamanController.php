@@ -94,7 +94,7 @@ class PinjamanController extends Controller
         $request->validate([
             'anggota_keluarga_id' => 'required|exists:anggota_keluarga,id',
             'jenis_pinjaman_id' => 'required|exists:jenis_pinjaman,id',
-            'nominal' => 'required|numeric|min:100000',
+            'nominal' => 'required|integer|min:100000|max:100000000',
             'tenor_bulan' => 'required|integer|min:1',
             'keperluan' => 'required|string|min:3',
             'jaminan' => 'nullable|string',

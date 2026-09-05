@@ -10,19 +10,17 @@ class PemilihPemiluController extends Controller
     public function index(Request $request)
     {
         // Base query: only residents aged 17+
-        $query = AnggotaKeluarga::with('kartuKeluarga')
-            ->whereNotNull('tanggal_lahir')
-            ->whereRaw("CAST((julianday('now') - julianday(tanggal_lahir)) / 365.25 AS INTEGER) >= 17");
+        $query = AnggotaKeluarga::with('kartuKeluarga')->usiaAntara(17);
 
         // Filter: Kelompok Umur
         if ($kelompok = $request->input('kelompok')) {
             $query->where(function ($q) use ($kelompok) {
                 match ($kelompok) {
-                    'pemula' => $q->whereRaw("CAST((julianday('now') - julianday(tanggal_lahir)) / 365.25 AS INTEGER) BETWEEN 17 AND 21"),
-                    'muda' => $q->whereRaw("CAST((julianday('now') - julianday(tanggal_lahir)) / 365.25 AS INTEGER) BETWEEN 22 AND 35"),
-                    'dewasa' => $q->whereRaw("CAST((julianday('now') - julianday(tanggal_lahir)) / 365.25 AS INTEGER) BETWEEN 36 AND 55"),
-                    'lansia' => $q->whereRaw("CAST((julianday('now') - julianday(tanggal_lahir)) / 365.25 AS INTEGER) >= 56"),
-                    default => null,
+                    'pemula' => $q->usiaAntara(17, 21),
+                    'muda'   => $q->usiaAntara(22, 35),
+                    'dewasa' => $q->usiaAntara(36, 55),
+                    'lansia' => $q->usiaAntara(56),
+                    default  => null,
                 };
             });
         }
@@ -41,18 +39,13 @@ class PemilihPemiluController extends Controller
         $totalPemilih = $pemilih->total();
 
         // Stats (from all eligible voters, not filtered)
-        $allEligible = AnggotaKeluarga::whereNotNull('tanggal_lahir')
-            ->whereRaw("CAST((julianday('now') - julianday(tanggal_lahir)) / 365.25 AS INTEGER) >= 17");
+        $allEligible = AnggotaKeluarga::usiaAntara(17);
 
         $totalAll = $allEligible->count();
         $laki = (clone $allEligible)->where('jenis_kelamin', 'L')->count();
         $perempuan = (clone $allEligible)->where('jenis_kelamin', 'P')->count();
-        $pemula = (clone $allEligible)
-            ->whereRaw("CAST((julianday('now') - julianday(tanggal_lahir)) / 365.25 AS INTEGER) BETWEEN 17 AND 21")
-            ->count();
-        $lansia = (clone $allEligible)
-            ->whereRaw("CAST((julianday('now') - julianday(tanggal_lahir)) / 365.25 AS INTEGER) >= 56")
-            ->count();
+        $pemula = (clone $allEligible)->usiaAntara(17, 21)->count();
+        $lansia = (clone $allEligible)->usiaAntara(56)->count();
 
         $totalAllWarga = AnggotaKeluarga::count();
 
