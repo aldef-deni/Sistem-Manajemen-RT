@@ -34,3 +34,7 @@ Thumbs.db
 # deploy
 /deploy.conf
 /storage/deploy.lock
+
+# berkas sementara pengujian
+/*.cookie
+/cookies-*.txt
