@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Arisan;
+use App\Models\ArisanIuran;
 use App\Models\AnggotaKeluarga;
 use App\Models\RekeningKas;
 use App\Models\User;
@@ -67,12 +68,25 @@ class ArisanController extends Controller
         return redirect()->route('arisan.index')->with('success', 'Arisan berhasil dibuat! Tambahkan peserta untuk memulai.');
     }
 
-    public function show(Arisan $arisan)
+    public function show(Request $request, Arisan $arisan)
     {
         $arisan->load(['peserta.kartuKeluarga', 'rekening']);
         $wargas = AnggotaKeluarga::orderBy('nama_lengkap')->get();
 
-        return view('arisan.show', compact('arisan', 'wargas'));
+        $periodeAktif = $this->periodeDiminta($request, $arisan);
+
+        // Iuran periode yang sedang dilihat, dikunci ke id peserta supaya
+        // tampilan tinggal memeriksa keberadaannya.
+        $iuranPeriode = $arisan->iuran()
+            ->where('periode_ke', $periodeAktif)
+            ->get()
+            ->keyBy('anggota_keluarga_id');
+
+        $ringkasan = $this->ringkasanIuran($arisan);
+
+        return view('arisan.show', compact(
+            'arisan', 'wargas', 'periodeAktif', 'iuranPeriode', 'ringkasan'
+        ));
     }
 
     public function edit(Arisan $arisan)
@@ -141,8 +155,14 @@ class ArisanController extends Controller
 
     public function hapusPeserta(Arisan $arisan, $pesertaId)
     {
+        // Catatan iuran ikut dibuang: pivot peserta dilepas dengan detach,
+        // yang tidak menyentuh tabel arisan_iuran, sehingga barisnya akan
+        // menggantung dan ikut terhitung pada total terkumpul.
+        $arisan->iuran()->where('anggota_keluarga_id', $pesertaId)->delete();
+
         $arisan->peserta()->detach($pesertaId);
-        return back()->with('success', 'Peserta berhasil dihapus!');
+
+        return back()->with('success', 'Peserta dan catatan iurannya berhasil dihapus.');
     }
 
     public function undian(Request $request, Arisan $arisan)
@@ -164,13 +184,171 @@ class ArisanController extends Controller
         return back()->with('success', 'Pemenang arisan: ' . $pemenang->nama_lengkap . '!');
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Pencatatan iuran
+    |--------------------------------------------------------------------------
+    */
+
+    /** Catat pembayaran satu peserta untuk satu periode. */
     public function bayarIuran(Request $request, Arisan $arisan)
     {
-        $request->validate([
+        $data = $request->validate([
             'anggota_keluarga_id' => 'required|exists:anggota_keluarga,id',
+            'periode_ke'          => 'required|integer|min:1|max:600',
+            'nominal'             => 'nullable|integer|min:0|max:100000000',
+            'tanggal_bayar'       => 'nullable|date',
+            'metode'              => 'nullable|in:tunai,transfer',
+            'keterangan'          => 'nullable|string|max:255',
         ]);
 
-        // Record payment (simplified - just mark as paid for this period)
-        return back()->with('success', 'Iuran arisan berhasil dicatat!');
+        if ($arisan->status !== 'aktif') {
+            return back()->with('error', 'Arisan sudah tidak aktif, iuran tidak dapat dicatat.');
+        }
+
+        if (! $this->pesertaArisan($arisan, $data['anggota_keluarga_id'])) {
+            return back()->with('error', 'Warga tersebut bukan peserta arisan ini.');
+        }
+
+        $sudah = $arisan->iuran()
+            ->where('anggota_keluarga_id', $data['anggota_keluarga_id'])
+            ->where('periode_ke', $data['periode_ke'])
+            ->exists();
+
+        if ($sudah) {
+            return back()->with('error', 'Iuran peserta ini untuk periode tersebut sudah tercatat.');
+        }
+
+        $arisan->iuran()->create([
+            'anggota_keluarga_id' => $data['anggota_keluarga_id'],
+            'periode_ke'          => $data['periode_ke'],
+            'nominal'             => $data['nominal'] ?? (int) $arisan->nominal_iuran,
+            'tanggal_bayar'       => $data['tanggal_bayar'] ?? now()->toDateString(),
+            'metode'              => $data['metode'] ?? 'tunai',
+            'keterangan'          => $data['keterangan'] ?? null,
+            'dicatat_oleh'        => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Iuran berhasil dicatat.');
+    }
+
+    /** Catat sekaligus seluruh peserta yang belum membayar pada satu periode. */
+    public function bayarIuranMassal(Request $request, Arisan $arisan)
+    {
+        $data = $request->validate([
+            'periode_ke'    => 'required|integer|min:1|max:600',
+            'tanggal_bayar' => 'nullable|date',
+            'metode'        => 'nullable|in:tunai,transfer',
+        ]);
+
+        if ($arisan->status !== 'aktif') {
+            return back()->with('error', 'Arisan sudah tidak aktif, iuran tidak dapat dicatat.');
+        }
+
+        $sudahBayar = $arisan->iuran()
+            ->where('periode_ke', $data['periode_ke'])
+            ->pluck('anggota_keluarga_id')
+            ->all();
+
+        $belum = $arisan->peserta()
+            ->whereNotIn('anggota_keluarga.id', $sudahBayar)
+            ->pluck('anggota_keluarga.id');
+
+        if ($belum->isEmpty()) {
+            return back()->with('error', 'Semua peserta sudah membayar untuk periode ini.');
+        }
+
+        $sekarang = now();
+
+        $baris = $belum->map(fn ($id) => [
+            'arisan_id'           => $arisan->id,
+            'anggota_keluarga_id' => $id,
+            'periode_ke'          => $data['periode_ke'],
+            'nominal'             => (int) $arisan->nominal_iuran,
+            'tanggal_bayar'       => $data['tanggal_bayar'] ?? $sekarang->toDateString(),
+            'metode'              => $data['metode'] ?? 'tunai',
+            'keterangan'          => 'Pencatatan massal',
+            'dicatat_oleh'        => auth()->id(),
+            'created_at'          => $sekarang,
+            'updated_at'          => $sekarang,
+        ])->all();
+
+        ArisanIuran::insert($baris);
+
+        return back()->with('success', count($baris) . ' peserta dicatat lunas untuk periode ini.');
+    }
+
+    /** Batalkan satu catatan iuran — untuk memperbaiki salah input. */
+    public function hapusIuran(Arisan $arisan, ArisanIuran $iuran)
+    {
+        if ($iuran->arisan_id !== $arisan->id) {
+            abort(404);
+        }
+
+        $iuran->delete();
+
+        return back()->with('success', 'Catatan iuran dibatalkan.');
+    }
+
+    /** Halaman riwayat: matriks peserta terhadap seluruh periode. */
+    public function riwayatIuran(Arisan $arisan)
+    {
+        $arisan->load('peserta');
+
+        $jumlahPeriode = max(1, $arisan->jumlahPeriode());
+        $periodeList   = range(1, $jumlahPeriode);
+
+        // Dikelompokkan sebagai [anggota_keluarga_id][periode_ke] supaya
+        // matriksnya tidak perlu mencari ulang di tiap sel.
+        $matriks = $arisan->iuran()
+            ->get()
+            ->groupBy('anggota_keluarga_id')
+            ->map(fn ($baris) => $baris->keyBy('periode_ke'));
+
+        $ringkasan = $this->ringkasanIuran($arisan);
+
+        return view('arisan.iuran', compact(
+            'arisan', 'periodeList', 'matriks', 'ringkasan'
+        ));
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pembantu
+    |--------------------------------------------------------------------------
+    */
+
+    private function pesertaArisan(Arisan $arisan, int|string $anggotaId): bool
+    {
+        return $arisan->peserta()->where('anggota_keluarga.id', $anggotaId)->exists();
+    }
+
+    /** Periode yang sedang dilihat: dari querystring, atau periode berjalan. */
+    private function periodeDiminta(Request $request, Arisan $arisan): int
+    {
+        $diminta  = (int) $request->query('periode', 0);
+        $maksimal = max(1, $arisan->jumlahPeriode());
+
+        if ($diminta >= 1 && $diminta <= $maksimal) {
+            return $diminta;
+        }
+
+        return $arisan->periodeSaatIni();
+    }
+
+    private function ringkasanIuran(Arisan $arisan): array
+    {
+        $terkumpul = $arisan->totalTerkumpul();
+        $target    = $arisan->targetTerkumpul();
+
+        return [
+            'jumlah_peserta'   => $arisan->peserta()->count(),
+            'jumlah_periode'   => $arisan->jumlahPeriode(),
+            'terkumpul'        => $terkumpul,
+            'target'           => $target,
+            'persen'           => $target > 0 ? (int) round($terkumpul / $target * 100) : 0,
+            'catatan_iuran'    => $arisan->iuran()->count(),
+            'periode_berjalan' => $arisan->periodeSaatIni(),
+        ];
     }
 }

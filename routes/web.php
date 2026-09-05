@@ -139,7 +139,10 @@ Route::middleware('auth')->group(function () {
         Route::post('arisan/{arisan}/peserta', [ArisanController::class, 'tambahPeserta'])->name('arisan.peserta.tambah');
         Route::delete('arisan/{arisan}/peserta/{peserta}', [ArisanController::class, 'hapusPeserta'])->name('arisan.peserta.hapus');
         Route::post('arisan/{arisan}/undian', [ArisanController::class, 'undian'])->name('arisan.undian');
+        Route::get('arisan/{arisan}/iuran', [ArisanController::class, 'riwayatIuran'])->name('arisan.iuran.riwayat');
         Route::post('arisan/{arisan}/iuran', [ArisanController::class, 'bayarIuran'])->name('arisan.iuran.bayar');
+        Route::post('arisan/{arisan}/iuran/massal', [ArisanController::class, 'bayarIuranMassal'])->name('arisan.iuran.massal');
+        Route::delete('arisan/{arisan}/iuran/{iuran}', [ArisanController::class, 'hapusIuran'])->name('arisan.iuran.hapus');
 
         // --- Inventaris --- (get-kode & rencana wajib di atas barang/{barang})
         Route::get('barang', [BarangController::class, 'index'])->name('barang.index');
