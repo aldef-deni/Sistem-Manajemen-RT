@@ -99,6 +99,57 @@ sudo find /www/wwwroot/rt.aldeftech.com -type d -exec chmod g+s {} +
    duplikatnya sudah di-comment. Perhatikan CLI membaca `php-cli.ini`,
    sedangkan FPM membaca `php.ini`; keduanya berkas terpisah.
 
+## Pengujian
+
+```bash
+php artisan test
+```
+
+29 uji, jalan di SQLite in-memory sehingga tidak menyentuh database mana pun.
+
+| Berkas | Yang dijaga |
+|---|---|
+| `tests/Feature/SmokeRouteTest.php` | Setiap rute GET dibuka sebagai empat peran; tidak boleh ada 5xx |
+| `tests/Feature/HakAksesTest.php` | Warga ditolak dari halaman pengurus, Ketua tidak bisa mengambil alih akun Administrator, lampiran `.php` ditolak |
+| `tests/Feature/CrudModulTest.php` | Buat → baca → ubah → hapus pada 19 modul, termasuk saldo kas dan tabungan benar-benar berubah |
+
+**Jalankan sebelum setiap deploy.** Tiga bug ditemukan justru oleh uji ini dan
+bukan oleh pembacaan kode: fungsi global di dalam `@php` yang fatal saat view
+dirender dua kali, kolom `nullable` Kartu Keluarga yang dibaca tanpa `??`, dan
+kegagalan halaman detail Arisan.
+
+Uji berjalan di SQLite sedangkan produksi memakai MySQL. Karena itu tidak ada
+lagi SQL khusus satu dialek di dalam kode — lihat `AnggotaKeluarga::usiaAntara()`.
+
+## Hak akses peran
+
+| Kelompok | Peran | Cakupan |
+|---|---|---|
+| tanpa `role:` | semua yang sudah masuk | dashboard, profil, pengumuman, kalender, struktur, polling, pengaduan, dan pengajuan mandiri (UMKM, bantuan sosial, pinjaman) |
+| `role:admin,ketua,pengurus` | pengurus ke atas | kependudukan, keuangan, inventaris, layanan, dokumentasi |
+| `role:admin,ketua` | admin & ketua | pengaturan, kelola pengurus, kelola akun |
+
+Menu sidebar disaring oleh `App\Support\MenuAccess`, yang membaca middleware
+`role:` pada route bersangkutan — jadi menu tidak bisa melenceng dari aturan
+akses yang sesungguhnya.
+
+## Berkas unggahan
+
+`App\Support\SafeUpload` membuat sendiri nama berkas dan hanya menerima
+ekstensi dari daftar yang diizinkan; ekstensi dari pengunggah tidak pernah
+dipakai apa adanya. Lapis keduanya di nginx:
+
+```
+/www/server/panel/vhost/nginx/extension/rt.aldeftech.com/uploads-no-exec.conf
+```
+
+Berkas itu memblokir eksekusi `.php`, `.phtml`, `.phar`, `.cgi`, `.pl`, `.py`,
+dan `.sh` di seluruh `/uploads`. Diletakkan di folder `extension` karena
+aaPanel meng-include-nya lebih awal daripada `enable-php-84.conf`, sehingga
+aturannya menang. Setelah mengubahnya jalankan `nginx -t` lalu `nginx -s reload`,
+dan beri jeda sebentar — reload nginx bersifat graceful, worker lama masih
+melayani beberapa saat.
+
 ## Seeder
 
 `db:seed` dijalankan **sekali saja** saat pemasangan. Jangan diulang di server:
