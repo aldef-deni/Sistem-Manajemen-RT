@@ -164,14 +164,19 @@ class ApiKelolaTest extends TestCase
         $this->assertSame('baru', $pengaduan->fresh()->status);
     }
 
-    /* ------------------------------------------------------- akun: admin & ketua */
+    /* ------------------------------------------------------- akun: Administrator */
 
     public function test_pengurus_ditolak_dari_kelola_akun(): void
     {
         $this->getJson('/api/kelola/akun', $this->sebagai('pengurus'))->assertForbidden();
     }
 
-    public function test_ketua_dapat_melihat_dan_mengubah_peran(): void
+    public function test_ketua_ditolak_dari_kelola_akun(): void
+    {
+        $this->getJson('/api/kelola/akun', $this->sebagai('ketua'))->assertForbidden();
+    }
+
+    public function test_administrator_dapat_melihat_dan_mengubah_peran(): void
     {
         $target = User::create([
             'name'     => 'Sekretaris Uji',
@@ -181,7 +186,7 @@ class ApiKelolaTest extends TestCase
             'role'     => 'warga',
         ]);
 
-        $token = $this->sebagai('ketua');
+        $token = $this->sebagai('admin');
 
         $this->getJson('/api/kelola/akun', $token)->assertOk()->assertJsonStructure(['data', 'halaman']);
 
@@ -193,21 +198,27 @@ class ApiKelolaTest extends TestCase
     {
         $admin = User::where('role', 'admin')->firstOrFail();
 
-        $this->patchJson("/api/kelola/akun/{$admin->id}/peran", ['peran' => 'warga'], $this->sebagai('ketua'))
+        $this->patchJson("/api/kelola/akun/{$admin->id}/peran", ['peran' => 'warga'], $this->sebagai('admin'))
             ->assertStatus(422);
 
         $this->assertSame('admin', $admin->fresh()->role);
     }
 
-    public function test_ketua_tidak_dapat_mengatur_ulang_password_administrator(): void
+    public function test_administrator_tidak_dapat_mengatur_ulang_password_administrator_lain(): void
     {
-        $admin = User::where('role', 'admin')->firstOrFail();
-        $sebelum = $admin->password;
+        $adminLain = User::create([
+            'name' => 'Administrator Cadangan',
+            'username' => 'admin-cadangan',
+            'email' => 'admin.cadangan@sistemrt.test',
+            'password' => Hash::make('rahasia123'),
+            'role' => 'admin',
+        ]);
+        $sebelum = $adminLain->password;
 
-        $this->patchJson("/api/kelola/akun/{$admin->id}/reset-password", [], $this->sebagai('ketua'))
+        $this->patchJson("/api/kelola/akun/{$adminLain->id}/reset-password", [], $this->sebagai('admin'))
             ->assertStatus(422);
 
-        $this->assertSame($sebelum, $admin->fresh()->password);
+        $this->assertSame($sebelum, $adminLain->fresh()->password);
     }
 
     public function test_reset_password_akun_biasa_mencabut_tokennya(): void
@@ -215,7 +226,7 @@ class ApiKelolaTest extends TestCase
         $target = User::where('username', 'pengurus')->firstOrFail();
         $tokenTarget = $this->sebagai('pengurus');
 
-        $hasil = $this->patchJson("/api/kelola/akun/{$target->id}/reset-password", [], $this->sebagai('ketua'))
+        $hasil = $this->patchJson("/api/kelola/akun/{$target->id}/reset-password", [], $this->sebagai('admin'))
             ->assertOk();
 
         $this->assertNotEmpty($hasil->json('password'));

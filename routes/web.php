@@ -252,7 +252,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |----------------------------------------------------------------------
-    | Administrator & Ketua RT
+    | Tata kelola RT — Administrator & Ketua RT
     |----------------------------------------------------------------------
     */
     Route::middleware('role:admin,ketua')->group(function () {
@@ -264,7 +264,17 @@ Route::middleware('auth')->group(function () {
         Route::post('pengaturan/pengurus', [PengaturanController::class, 'storePengurus'])->name('pengaturan.pengurus.store');
         Route::put('pengaturan/pengurus/{id}', [PengaturanController::class, 'updatePengurus'])->name('pengaturan.pengurus.update');
         Route::delete('pengaturan/pengurus/{id}', [PengaturanController::class, 'destroyPengurus'])->name('pengaturan.pengurus.destroy');
+    });
 
+    /*
+    |----------------------------------------------------------------------
+    | Administrasi sistem — khusus Administrator
+    |----------------------------------------------------------------------
+    | Ketua RT mengelola organisasi dan operasional, sedangkan pembuatan
+    | akun, perubahan peran, dan password pengguna tetap dipisahkan sebagai
+    | kewenangan teknis Administrator.
+    */
+    Route::middleware('role:admin')->group(function () {
         Route::resource('akun', AkunController::class)->except(['show']);
     });
 

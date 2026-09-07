@@ -77,9 +77,8 @@ class AkunController extends Controller
     {
         $this->authorizeManageAkun();
 
-        // Akun Administrator hanya boleh diubah oleh dirinya sendiri. Tanpa
-        // penjagaan ini seorang Ketua RT bisa mengganti password Administrator
-        // lalu masuk sebagai Administrator.
+        // Pertahanan berlapis bila controller kelak dipanggil dari rute lain:
+        // satu Administrator tidak boleh mengambil alih Administrator lain.
         if ($akun->role === 'admin' && $akun->id !== auth()->id()) {
             return back()->with('error', 'Akun Administrator hanya dapat diubah oleh pemiliknya sendiri.');
         }

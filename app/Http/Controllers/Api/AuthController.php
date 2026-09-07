@@ -84,6 +84,11 @@ class AuthController extends Controller
             },
             'foto_url' => $user->foto ? url($user->foto) : null,
             'pengurus' => in_array($user->role, ['admin', 'ketua', 'pengurus'], true),
+            'hak_akses' => [
+                'kelola_operasional' => $user->canManageOperasional(),
+                'kelola_pengaturan_rt' => $user->canManagePengaturanRt(),
+                'kelola_akun' => $user->canManageAkun(),
+            ],
             'warga'    => $warga ? [
                 'id'      => $warga->id,
                 'nama'    => $warga->nama_lengkap,

@@ -47,7 +47,7 @@
                     <div class="flex items-center gap-3 pl-4 border-l border-slate-200">
                         <div class="text-right hidden sm:block">
                             <p class="text-sm font-medium text-slate-700">{{ auth()->user()->name ?? 'Administrator' }}</p>
-                            <p class="text-xs text-slate-400">Admin</p>
+                            <p class="text-xs text-slate-400">{{ auth()->user()->role_label }}</p>
                         </div>
                         <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-semibold text-sm shadow-md shadow-blue-500/20">
                             {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}

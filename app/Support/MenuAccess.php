@@ -22,26 +22,27 @@ class MenuAccess
             return true;
         }
 
-        if (array_key_exists($routeName, self::$cache)) {
-            return self::$cache[$routeName];
+        $peran = auth()->user()?->role ?? 'tamu';
+        $cacheKey = $peran . ':' . $routeName;
+
+        if (array_key_exists($cacheKey, self::$cache)) {
+            return self::$cache[$cacheKey];
         }
 
         $route = Route::getRoutes()->getByName($routeName);
 
         if (! $route) {
-            return self::$cache[$routeName] = false;
+            return self::$cache[$cacheKey] = false;
         }
-
-        $peran = auth()->user()?->role;
 
         foreach ($route->gatherMiddleware() as $middleware) {
             if (is_string($middleware) && str_starts_with($middleware, 'role:')) {
                 $diizinkan = explode(',', substr($middleware, 5));
 
-                return self::$cache[$routeName] = in_array($peran, $diizinkan, true);
+                return self::$cache[$cacheKey] = in_array($peran, $diizinkan, true);
             }
         }
 
-        return self::$cache[$routeName] = true;
+        return self::$cache[$cacheKey] = true;
     }
 }

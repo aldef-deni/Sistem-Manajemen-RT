@@ -61,6 +61,35 @@ class HakAksesTest extends TestCase
         $this->actingAs($pengurus)->get('/akun')->assertForbidden();
     }
 
+    /** Ketua RT memimpin tata kelola RT, tetapi tidak mengelola akun sistem. */
+    public function test_ketua_mengelola_rt_tanpa_akses_administrasi_akun(): void
+    {
+        $ketua = $this->sebagai('ketua');
+
+        $this->actingAs($ketua)->get('/kas-rt')->assertOk();
+        $this->actingAs($ketua)->get('/pengaturan')->assertOk();
+        $this->actingAs($ketua)->get('/pengaturan/tata-tertib')->assertOk();
+        $this->actingAs($ketua)->get('/pengaturan/kelola-pengurus')->assertOk();
+        $this->actingAs($ketua)->get('/akun')->assertForbidden();
+        $this->actingAs($ketua)->get('/akun/create')->assertForbidden();
+
+        $this->actingAs($ketua)->get('/dashboard')
+            ->assertOk()
+            ->assertSee('Ketua RT')
+            ->assertDontSee('Kelola Akun');
+    }
+
+    /** Administrator memiliki akses teknis akun serta seluruh tata kelola RT. */
+    public function test_administrator_dapat_mengelola_akun_dan_pengaturan_rt(): void
+    {
+        $admin = $this->sebagai('admin');
+
+        $this->actingAs($admin)->get('/akun')->assertOk();
+        $this->actingAs($admin)->get('/akun/create')->assertOk();
+        $this->actingAs($admin)->get('/pengaturan')->assertOk();
+        $this->actingAs($admin)->get('/dashboard')->assertSee('Kelola Akun');
+    }
+
     /** Ketua RT tidak boleh mengganti password atau menurunkan peran Administrator. */
     public function test_ketua_tidak_dapat_mengambil_alih_akun_administrator(): void
     {
@@ -74,7 +103,7 @@ class HakAksesTest extends TestCase
             'role'                  => 'warga',
             'password'              => 'sandi-rampasan',
             'password_confirmation' => 'sandi-rampasan',
-        ]);
+        ])->assertForbidden();
 
         $admin->refresh();
 

@@ -65,7 +65,24 @@ class ApiMobileTest extends TestCase
         $this->assertNotEmpty($res->json('token'));
         $res->assertJsonPath('user.username', 'admin')
             ->assertJsonPath('user.peran', 'admin')
-            ->assertJsonPath('user.pengurus', true);
+            ->assertJsonPath('user.pengurus', true)
+            ->assertJsonPath('user.hak_akses.kelola_operasional', true)
+            ->assertJsonPath('user.hak_akses.kelola_pengaturan_rt', true)
+            ->assertJsonPath('user.hak_akses.kelola_akun', true);
+    }
+
+    public function test_profil_ketua_tidak_memiliki_hak_kelola_akun(): void
+    {
+        $res = $this->postJson('/api/login', [
+            'username' => 'ketua',
+            'password' => $this->siapkanPassword('ketua'),
+            'device_name' => 'uji-android',
+        ])->assertOk();
+
+        $res->assertJsonPath('user.peran', 'ketua')
+            ->assertJsonPath('user.hak_akses.kelola_operasional', true)
+            ->assertJsonPath('user.hak_akses.kelola_pengaturan_rt', true)
+            ->assertJsonPath('user.hak_akses.kelola_akun', false);
     }
 
     private function siapkanPassword(string $username, string $password = 'password'): string

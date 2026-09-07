@@ -61,10 +61,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |----------------------------------------------------------------------
-    | Administrator & Ketua RT
+    | Administrasi sistem — khusus Administrator
     |----------------------------------------------------------------------
     */
-    Route::middleware('role:admin,ketua')->prefix('kelola')->group(function () {
+    Route::middleware('role:admin')->prefix('kelola')->group(function () {
         Route::get('akun', [KelolaController::class, 'akun']);
         Route::patch('akun/{akun}/peran', [KelolaController::class, 'ubahPeran']);
         Route::patch('akun/{akun}/reset-password', [KelolaController::class, 'resetPassword']);

@@ -7,6 +7,21 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Hak akses Sistem Manajemen RT
+
+| Area | Administrator | Ketua RT |
+| --- | --- | --- |
+| Operasional harian | Ya | Ya |
+| Data kependudukan (CRUD) | Ya | Ya |
+| Profil RT, tata tertib, dan susunan pengurus | Ya | Ya |
+| Membuat dan menghapus akun pengguna | Ya | Tidak |
+| Mengubah peran dan password akun lain | Ya | Tidak |
+
+Administrator memegang administrasi teknis sistem. Ketua RT memimpin tata
+kelola organisasi dan operasional RT tanpa akses ke kredensial atau peran akun
+pengguna. Aturan ini diterapkan pada route web dan API; menu web serta bidang
+`hak_akses` pada profil API mengikuti aturan yang sama.
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

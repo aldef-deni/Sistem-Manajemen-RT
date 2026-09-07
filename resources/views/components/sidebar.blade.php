@@ -78,7 +78,7 @@
         ],
     ];
 
-    // Kelola Akun — hanya Administrator & Ketua RT yang melihat menu ini
+    // Kelola Akun adalah fungsi teknis yang hanya terlihat oleh Administrator.
     if (auth()->user()->canManageAkun()) {
         foreach ($menu as &$group) {
             if (($group['group'] ?? null) === 'Pengaturan') {

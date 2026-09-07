@@ -198,7 +198,7 @@ class KelolaController extends Controller
         return response()->json(['pesan' => 'Balasan terkirim.'], 201);
     }
 
-    /* ----------------------------------------------------- akun (admin/ketua) */
+    /* ----------------------------------------------------- akun (Administrator) */
 
     public function akun(Request $request): JsonResponse
     {
@@ -241,8 +241,8 @@ class KelolaController extends Controller
             'peran' => 'required|in:ketua,pengurus,warga',
         ]);
 
-        // Penjagaan yang sama dengan sisi web: akun Administrator tidak boleh
-        // diturunkan perannya oleh siapa pun selain dirinya sendiri.
+        // Peran Administrator hanya dikelola di luar aplikasi agar akun teknis
+        // tidak dapat diturunkan, termasuk oleh Administrator itu sendiri.
         if ($akun->role === 'admin') {
             return response()->json(['pesan' => 'Peran Administrator tidak dapat diubah dari aplikasi.'], 422);
         }

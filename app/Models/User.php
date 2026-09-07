@@ -65,11 +65,25 @@ class User extends Authenticatable
     }
 
     /**
-     * Hanya Administrator & Ketua RT yang boleh mengelola akun pengguna.
+     * Pengelolaan akun adalah kewenangan teknis Administrator.
+     * Ketua RT mengelola organisasi dan operasional tanpa dapat mengubah
+     * identitas, peran, atau password akun pengguna lain.
      */
     public function canManageAkun(): bool
     {
+        return $this->role === 'admin';
+    }
+
+    /** Administrator dan Ketua RT dapat mengelola profil organisasi RT. */
+    public function canManagePengaturanRt(): bool
+    {
         return in_array($this->role, ['admin', 'ketua'], true);
+    }
+
+    /** Administrator, Ketua RT, dan Pengurus menjalankan operasional harian. */
+    public function canManageOperasional(): bool
+    {
+        return in_array($this->role, ['admin', 'ketua', 'pengurus'], true);
     }
 
     public function getFotoUrlAttribute(): ?string
