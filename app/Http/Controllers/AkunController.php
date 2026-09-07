@@ -46,12 +46,14 @@ class AkunController extends Controller
     public function store(Request $request)
     {
         $this->authorizeManageAkun();
+        $bolehKelolaPeran = auth()->user()->canManagePeran();
+
         $validated = $request->validate([
             'name'     => 'required|string|max:100',
             'username' => 'required|string|max:50|unique:users,username',
             'email'    => 'required|email|max:100|unique:users,email',
             'no_hp'    => 'nullable|string|max:20',
-            'role'     => 'required|in:ketua,pengurus,warga',
+            'role'     => $bolehKelolaPeran ? 'required|in:ketua,pengurus,warga' : 'prohibited',
             'password' => 'required|string|min:6|confirmed',
         ]);
 
@@ -60,7 +62,8 @@ class AkunController extends Controller
             'username' => $validated['username'],
             'email'    => $validated['email'],
             'no_hp'    => $validated['no_hp'] ?? null,
-            'role'     => $validated['role'],
+            // Akun yang dibuat Ketua RT selalu dimulai sebagai Warga.
+            'role'     => $bolehKelolaPeran ? $validated['role'] : 'warga',
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -70,6 +73,11 @@ class AkunController extends Controller
     public function edit(User $akun)
     {
         $this->authorizeManageAkun();
+
+        if ($akun->role === 'admin' && $akun->id !== auth()->id()) {
+            abort(403, 'Akun Administrator hanya dapat diubah oleh pemiliknya sendiri.');
+        }
+
         return view('akun.edit', compact('akun'));
     }
 
@@ -80,15 +88,17 @@ class AkunController extends Controller
         // Pertahanan berlapis bila controller kelak dipanggil dari rute lain:
         // satu Administrator tidak boleh mengambil alih Administrator lain.
         if ($akun->role === 'admin' && $akun->id !== auth()->id()) {
-            return back()->with('error', 'Akun Administrator hanya dapat diubah oleh pemiliknya sendiri.');
+            abort(403, 'Akun Administrator hanya dapat diubah oleh pemiliknya sendiri.');
         }
+
+        $bolehKelolaPeran = auth()->user()->canManagePeran() && $akun->role !== 'admin';
 
         $validated = $request->validate([
             'name'     => 'required|string|max:100',
             'username' => 'required|string|max:50|unique:users,username,' . $akun->id,
             'email'    => 'required|email|max:100|unique:users,email,' . $akun->id,
             'no_hp'    => 'nullable|string|max:20',
-            'role'     => 'required|in:ketua,pengurus,warga',
+            'role'     => $bolehKelolaPeran ? 'required|in:ketua,pengurus,warga' : 'prohibited',
             'password' => 'nullable|string|min:6|confirmed',
         ]);
 
@@ -97,9 +107,7 @@ class AkunController extends Controller
             'username' => $validated['username'],
             'email'    => $validated['email'],
             'no_hp'    => $validated['no_hp'] ?? null,
-            // Peran admin tidak ikut diubah — daftar pilihan peran memang
-            // tidak memuat 'admin', jadi menyimpannya akan menurunkan peran.
-            'role'     => $akun->role === 'admin' ? 'admin' : $validated['role'],
+            'role'     => $bolehKelolaPeran ? $validated['role'] : $akun->role,
         ]);
 
         if (! empty($validated['password'])) {

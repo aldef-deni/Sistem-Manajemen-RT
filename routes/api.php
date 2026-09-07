@@ -61,12 +61,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |----------------------------------------------------------------------
-    | Administrasi sistem — khusus Administrator
+    | Administrasi akun — Administrator & Ketua RT
     |----------------------------------------------------------------------
     */
-    Route::middleware('role:admin')->prefix('kelola')->group(function () {
+    Route::middleware('role:admin,ketua')->prefix('kelola')->group(function () {
         Route::get('akun', [KelolaController::class, 'akun']);
-        Route::patch('akun/{akun}/peran', [KelolaController::class, 'ubahPeran']);
         Route::patch('akun/{akun}/reset-password', [KelolaController::class, 'resetPassword']);
+    });
+
+    // Perubahan peran merupakan kewenangan eksklusif Administrator.
+    Route::middleware('role:admin')->prefix('kelola')->group(function () {
+        Route::patch('akun/{akun}/peran', [KelolaController::class, 'ubahPeran']);
     });
 });

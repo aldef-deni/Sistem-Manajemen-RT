@@ -7,6 +7,7 @@ use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 /**
@@ -61,8 +62,8 @@ class HakAksesTest extends TestCase
         $this->actingAs($pengurus)->get('/akun')->assertForbidden();
     }
 
-    /** Ketua RT memimpin tata kelola RT, tetapi tidak mengelola akun sistem. */
-    public function test_ketua_mengelola_rt_tanpa_akses_administrasi_akun(): void
+    /** Ketua RT mengelola operasional, pengaturan, akun, dan password. */
+    public function test_ketua_dapat_mengelola_rt_dan_akun(): void
     {
         $ketua = $this->sebagai('ketua');
 
@@ -70,13 +71,52 @@ class HakAksesTest extends TestCase
         $this->actingAs($ketua)->get('/pengaturan')->assertOk();
         $this->actingAs($ketua)->get('/pengaturan/tata-tertib')->assertOk();
         $this->actingAs($ketua)->get('/pengaturan/kelola-pengurus')->assertOk();
-        $this->actingAs($ketua)->get('/akun')->assertForbidden();
-        $this->actingAs($ketua)->get('/akun/create')->assertForbidden();
+        $this->actingAs($ketua)->get('/akun')->assertOk();
+        $this->actingAs($ketua)->get('/akun/create')
+            ->assertOk()
+            ->assertSee('Perubahan role dilakukan oleh Administrator');
 
         $this->actingAs($ketua)->get('/dashboard')
             ->assertOk()
             ->assertSee('Ketua RT')
-            ->assertDontSee('Kelola Akun');
+            ->assertSee('Kelola Akun');
+    }
+
+    /** Ketua RT dapat membuat akun Warga dan mengganti password tanpa mengubah role. */
+    public function test_ketua_mengelola_akun_tanpa_hak_mengubah_role(): void
+    {
+        $ketua = $this->sebagai('ketua');
+
+        $this->actingAs($ketua)->post(route('akun.store'), [
+            'name' => 'Warga Baru',
+            'username' => 'warga-baru-ketua',
+            'email' => 'warga.baru.ketua@sistemrt.test',
+            'password' => 'rahasia-baru',
+            'password_confirmation' => 'rahasia-baru',
+        ])->assertRedirect(route('akun.index'));
+
+        $akun = User::where('username', 'warga-baru-ketua')->firstOrFail();
+        $this->assertSame('warga', $akun->role);
+
+        $this->actingAs($ketua)->put(route('akun.update', $akun), [
+            'name' => $akun->name,
+            'username' => $akun->username,
+            'email' => $akun->email,
+            'password' => 'password-baru',
+            'password_confirmation' => 'password-baru',
+        ])->assertRedirect(route('akun.index'));
+
+        $this->assertTrue(Hash::check('password-baru', $akun->fresh()->password));
+        $this->assertSame('warga', $akun->fresh()->role);
+
+        $this->actingAs($ketua)->put(route('akun.update', $akun), [
+            'name' => $akun->name,
+            'username' => $akun->username,
+            'email' => $akun->email,
+            'role' => 'pengurus',
+        ])->assertSessionHasErrors('role');
+
+        $this->assertSame('warga', $akun->fresh()->role);
     }
 
     /** Administrator memiliki akses teknis akun serta seluruh tata kelola RT. */

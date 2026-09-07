@@ -63,14 +63,19 @@
                                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Role <span class="text-red-500">*</span></label>
-                        <select name="role" required
-                                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
-                            <option value="" disabled {{ old('role') ? '' : 'selected' }}>Pilih role...</option>
-                            <option value="ketua" {{ old('role') === 'ketua' ? 'selected' : '' }}>Ketua RT</option>
-                            <option value="pengurus" {{ old('role') === 'pengurus' ? 'selected' : '' }}>Pengurus RT</option>
-                            <option value="warga" {{ old('role') === 'warga' ? 'selected' : '' }}>Warga</option>
-                        </select>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Role @if(auth()->user()->canManagePeran())<span class="text-red-500">*</span>@endif</label>
+                        @if (auth()->user()->canManagePeran())
+                            <select name="role" required
+                                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                                <option value="" disabled {{ old('role') ? '' : 'selected' }}>Pilih role...</option>
+                                <option value="ketua" {{ old('role') === 'ketua' ? 'selected' : '' }}>Ketua RT</option>
+                                <option value="pengurus" {{ old('role') === 'pengurus' ? 'selected' : '' }}>Pengurus RT</option>
+                                <option value="warga" {{ old('role') === 'warga' ? 'selected' : '' }}>Warga</option>
+                            </select>
+                        @else
+                            <div class="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-600">Warga</div>
+                            <p class="text-[11px] text-slate-400 mt-1">Ketua RT dapat membuat akun Warga. Perubahan role dilakukan oleh Administrator.</p>
+                        @endif
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Password <span class="text-red-500">*</span></label>
@@ -85,6 +90,7 @@
                 </div>
 
                 {{-- Role Info --}}
+                @if (auth()->user()->canManagePeran())
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div class="p-3 rounded-lg bg-green-50 border border-green-200">
                         <p class="text-xs font-bold text-green-700">Ketua RT</p>
@@ -99,6 +105,7 @@
                         <p class="text-[11px] text-slate-500 mt-0.5">Akses terbatas sesuai fitur warga</p>
                     </div>
                 </div>
+                @endif
             </div>
         </div>
 

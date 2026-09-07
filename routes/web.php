@@ -268,13 +268,12 @@ Route::middleware('auth')->group(function () {
 
     /*
     |----------------------------------------------------------------------
-    | Administrasi sistem — khusus Administrator
+    | Administrasi akun — Administrator & Ketua RT
     |----------------------------------------------------------------------
-    | Ketua RT mengelola organisasi dan operasional, sedangkan pembuatan
-    | akun, perubahan peran, dan password pengguna tetap dipisahkan sebagai
-    | kewenangan teknis Administrator.
+    | Keduanya dapat mengelola akun dan password. Perubahan peran tetap
+    | dijaga khusus Administrator di dalam controller.
     */
-    Route::middleware('role:admin')->group(function () {
+    Route::middleware('role:admin,ketua')->group(function () {
         Route::resource('akun', AkunController::class)->except(['show']);
     });
 

@@ -164,16 +164,26 @@ class ApiKelolaTest extends TestCase
         $this->assertSame('baru', $pengaduan->fresh()->status);
     }
 
-    /* ------------------------------------------------------- akun: Administrator */
+    /* ------------------------------------------ akun: Administrator & Ketua RT */
 
     public function test_pengurus_ditolak_dari_kelola_akun(): void
     {
         $this->getJson('/api/kelola/akun', $this->sebagai('pengurus'))->assertForbidden();
     }
 
-    public function test_ketua_ditolak_dari_kelola_akun(): void
+    public function test_ketua_dapat_melihat_dan_reset_password_tapi_tidak_mengubah_peran(): void
     {
-        $this->getJson('/api/kelola/akun', $this->sebagai('ketua'))->assertForbidden();
+        $target = User::where('role', 'warga')->firstOrFail();
+        $token = $this->sebagai('ketua');
+
+        $this->getJson('/api/kelola/akun', $token)->assertOk();
+        $this->patchJson("/api/kelola/akun/{$target->id}/reset-password", [], $token)
+            ->assertOk()
+            ->assertJsonStructure(['password']);
+        $this->patchJson("/api/kelola/akun/{$target->id}/peran", ['peran' => 'pengurus'], $token)
+            ->assertForbidden();
+
+        $this->assertSame('warga', $target->fresh()->role);
     }
 
     public function test_administrator_dapat_melihat_dan_mengubah_peran(): void

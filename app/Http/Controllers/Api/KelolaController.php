@@ -198,7 +198,7 @@ class KelolaController extends Controller
         return response()->json(['pesan' => 'Balasan terkirim.'], 201);
     }
 
-    /* ----------------------------------------------------- akun (Administrator) */
+    /* ----------------------------------------- akun (Administrator/Ketua RT) */
 
     public function akun(Request $request): JsonResponse
     {

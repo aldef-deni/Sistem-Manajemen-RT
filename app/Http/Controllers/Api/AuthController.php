@@ -88,6 +88,7 @@ class AuthController extends Controller
                 'kelola_operasional' => $user->canManageOperasional(),
                 'kelola_pengaturan_rt' => $user->canManagePengaturanRt(),
                 'kelola_akun' => $user->canManageAkun(),
+                'kelola_peran' => $user->canManagePeran(),
             ],
             'warga'    => $warga ? [
                 'id'      => $warga->id,

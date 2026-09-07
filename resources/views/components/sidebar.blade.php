@@ -78,7 +78,8 @@
         ],
     ];
 
-    // Kelola Akun adalah fungsi teknis yang hanya terlihat oleh Administrator.
+    // Administrator dan Ketua RT dapat mengelola akun. Hak mengubah peran
+    // tetap dibatasi khusus Administrator di controller dan form akun.
     if (auth()->user()->canManageAkun()) {
         foreach ($menu as &$group) {
             if (($group['group'] ?? null) === 'Pengaturan') {

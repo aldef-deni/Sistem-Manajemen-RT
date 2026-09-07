@@ -14,13 +14,15 @@
 | Operasional harian | Ya | Ya |
 | Data kependudukan (CRUD) | Ya | Ya |
 | Profil RT, tata tertib, dan susunan pengurus | Ya | Ya |
-| Membuat dan menghapus akun pengguna | Ya | Tidak |
-| Mengubah peran dan password akun lain | Ya | Tidak |
+| Membuat dan menghapus akun pengguna | Ya | Ya |
+| Mengubah data dan password akun lain | Ya | Ya |
+| Menentukan role akun baru | Ya | Tidak (akun baru menjadi Warga) |
+| Mengubah role pengguna | Ya | Tidak |
 
-Administrator memegang administrasi teknis sistem. Ketua RT memimpin tata
-kelola organisasi dan operasional RT tanpa akses ke kredensial atau peran akun
-pengguna. Aturan ini diterapkan pada route web dan API; menu web serta bidang
-`hak_akses` pada profil API mengikuti aturan yang sama.
+Administrator dan Ketua RT dapat mengelola organisasi, operasional, akun, serta
+password pengguna. Khusus penentuan dan perubahan role tetap menjadi kewenangan
+Administrator. Aturan ini diterapkan pada route web dan API; menu web serta
+bidang `hak_akses` pada profil API mengikuti aturan yang sama.
 
 ## About Laravel
 

@@ -64,12 +64,14 @@ class User extends Authenticatable
         return in_array($this->role, ['admin', 'ketua'], true);
     }
 
-    /**
-     * Pengelolaan akun adalah kewenangan teknis Administrator.
-     * Ketua RT mengelola organisasi dan operasional tanpa dapat mengubah
-     * identitas, peran, atau password akun pengguna lain.
-     */
+    /** Administrator dan Ketua RT dapat mengelola akun pengguna. */
     public function canManageAkun(): bool
+    {
+        return in_array($this->role, ['admin', 'ketua'], true);
+    }
+
+    /** Perubahan peran pengguna tetap menjadi kewenangan Administrator. */
+    public function canManagePeran(): bool
     {
         return $this->role === 'admin';
     }
