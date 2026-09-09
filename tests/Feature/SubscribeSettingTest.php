@@ -43,6 +43,7 @@ class SubscribeSettingTest extends TestCase
         $this->actingAs($this->sebagai('admin'))
             ->put(route('subscribe.update'), [
                 'status' => 'aktif',
+                'roles' => ['ketua', 'pengurus', 'warga'],
                 'harga' => 25000,
                 'bank' => 'Bank BCA',
                 'nomor_rekening' => '1234567890',
@@ -52,6 +53,7 @@ class SubscribeSettingTest extends TestCase
             ->assertSessionHas('success');
 
         $this->assertSame('1', SettingRT::get('subscribe_enabled'));
+        $this->assertSame(['ketua', 'pengurus', 'warga'], json_decode(SettingRT::get('subscribe_roles'), true));
         $this->assertSame('25000', SettingRT::get('subscribe_price'));
         $this->assertSame('Bank BCA', SettingRT::get('subscribe_bank'));
         $this->assertSame('1234567890', SettingRT::get('subscribe_account_number'));
@@ -64,7 +66,7 @@ class SubscribeSettingTest extends TestCase
             ->from(route('subscribe.index'))
             ->put(route('subscribe.update'), ['status' => 'aktif'])
             ->assertRedirect(route('subscribe.index'))
-            ->assertSessionHasErrors(['harga', 'bank', 'nomor_rekening', 'nama_rekening']);
+            ->assertSessionHasErrors(['roles', 'harga', 'bank', 'nomor_rekening', 'nama_rekening']);
 
         $this->assertNull(SettingRT::get('subscribe_enabled'));
     }
@@ -84,6 +86,47 @@ class SubscribeSettingTest extends TestCase
             ->assertRedirect(route('subscribe.index'));
 
         $this->assertSame('0', SettingRT::get('subscribe_enabled'));
+    }
+
+    public function test_administrator_dapat_memilih_satu_atau_beberapa_role(): void
+    {
+        $this->actingAs($this->sebagai('admin'))
+            ->put(route('subscribe.update'), [
+                'status' => 'aktif',
+                'roles' => ['pengurus', 'warga'],
+                'harga' => 50000,
+                'bank' => 'Bank Mandiri',
+                'nomor_rekening' => '9876543210',
+                'nama_rekening' => 'Pengurus RT',
+            ])
+            ->assertRedirect(route('subscribe.index'));
+
+        $this->assertSame(['pengurus', 'warga'], json_decode(SettingRT::get('subscribe_roles'), true));
+
+        $this->actingAs($this->sebagai('admin'))
+            ->get(route('subscribe.index'))
+            ->assertOk()
+            ->assertSee('value="pengurus"', false)
+            ->assertSee('value="warga"', false);
+    }
+
+    public function test_role_administrator_tidak_dapat_dimasukkan_ke_subscribe(): void
+    {
+        $this->actingAs($this->sebagai('admin'))
+            ->from(route('subscribe.index'))
+            ->put(route('subscribe.update'), [
+                'status' => 'aktif',
+                'roles' => ['admin'],
+                'harga' => 25000,
+                'bank' => 'Bank BCA',
+                'nomor_rekening' => '1234567890',
+                'nama_rekening' => 'Deni Afrizal',
+            ])
+            ->assertRedirect(route('subscribe.index'))
+            ->assertSessionHasErrors('roles.0');
+
+        $this->assertNull(SettingRT::get('subscribe_enabled'));
+        $this->assertNull(SettingRT::get('subscribe_roles'));
     }
 
     public function test_menu_subscribe_hanya_tampil_untuk_administrator(): void
