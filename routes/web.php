@@ -29,6 +29,7 @@ use App\Http\Controllers\PollingController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\AkunController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\SubscribeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -275,6 +276,18 @@ Route::middleware('auth')->group(function () {
     */
     Route::middleware('role:admin,ketua')->group(function () {
         Route::resource('akun', AkunController::class)->except(['show']);
+    });
+
+    /*
+    |----------------------------------------------------------------------
+    | Subscribe warga — khusus Administrator
+    |----------------------------------------------------------------------
+    | Tahap ini menyimpan status fitur dan rekening pembayaran. Penerapan
+    | pembatasan akses serta transaksi warga ditambahkan pada tahap berikutnya.
+    */
+    Route::middleware('role:admin')->group(function () {
+        Route::get('subscribe', [SubscribeController::class, 'index'])->name('subscribe.index');
+        Route::put('subscribe', [SubscribeController::class, 'update'])->name('subscribe.update');
     });
 
     /*
