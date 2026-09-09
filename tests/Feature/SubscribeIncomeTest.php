@@ -161,4 +161,36 @@ class SubscribeIncomeTest extends TestCase
             ->assertSee('Pendapatan')
             ->assertSee(route('subscribe.income.index'));
     }
+
+    public function test_hanya_satu_menu_subscribe_yang_aktif_sesuai_halaman(): void
+    {
+        $admin = $this->user('admin', 'admin-menu-aktif');
+
+        foreach ([
+            'subscribe.index' => ['Subscribe'],
+            'subscribe.verifications.index' => ['Verifikasi Pembayaran'],
+            'subscribe.income.index' => ['Pendapatan'],
+        ] as $routeName => $expectedLabels) {
+            $response = $this->actingAs($admin)->get(route($routeName))->assertOk();
+
+            $this->assertSame($expectedLabels, $this->activeSidebarLabels($response->getContent()));
+        }
+    }
+
+    /** @return list<string> */
+    private function activeSidebarLabels(string $html): array
+    {
+        $document = new \DOMDocument;
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+
+        $labels = [];
+        $nodes = $xpath->query('//aside[@id="sidebar"]//a[contains(concat(" ", normalize-space(@class), " "), " active ")]/span');
+
+        foreach ($nodes ?: [] as $node) {
+            $labels[] = trim($node->textContent);
+        }
+
+        return $labels;
+    }
 }

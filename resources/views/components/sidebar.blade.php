@@ -165,10 +165,13 @@
     // yang hidup lama), dan deklarasi fungsi global akan fatal "Cannot redeclare".
     $isActive = function ($itemRoute, $currentRoute) {
         if ($itemRoute === $currentRoute) return true;
-        if (! str_contains($itemRoute, '.')) return false;
+
         if (str_ends_with($itemRoute, '.index')) {
-            return explode('.', $itemRoute)[0] === explode('.', $currentRoute)[0];
+            $resourceRoute = substr($itemRoute, 0, -strlen('.index'));
+
+            return str_starts_with($currentRoute, $resourceRoute.'.');
         }
+
         return false;
     };
 
@@ -304,7 +307,7 @@
                                     <div class="menu-sub {{ $subMenuOpen($sub, $currentRoute) ? 'open' : '' }}">
                                         <div class="menu-sub-head">
                                             <a href="{{ route($sub['route']) }}"
-                                               class="menu-item {{ $isActive($sub['route'], $currentRoute) ? 'active' : '' }}">
+                                               class="menu-item {{ $sub['route'] === $currentRoute ? 'active' : '' }}">
                                                 {!! $sub['icon'] !!}
                                                 <span>{{ $sub['label'] }}</span>
                                             </a>
