@@ -1,37 +1,38 @@
 <?php
 
+use App\Http\Controllers\AkunController;
+use App\Http\Controllers\ArisanController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\BantuanSosialController;
+use App\Http\Controllers\BarangController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataWargaController;
 use App\Http\Controllers\IuranWargaController;
-use App\Http\Controllers\KartuKeluargaController;
-use App\Http\Controllers\PemilihPemiluController;
-use App\Http\Controllers\KasRTController;
-use App\Http\Controllers\TabunganController;
-use App\Http\Controllers\PinjamanController;
-use App\Http\Controllers\ArisanController;
-use App\Http\Controllers\BarangController;
-use App\Http\Controllers\RencanaPembelianController;
-use App\Http\Controllers\PeminjamanBarangController;
-use App\Http\Controllers\UMKMController;
-use App\Http\Controllers\BantuanSosialController;
-use App\Http\Controllers\VisitorController;
-use App\Http\Controllers\SuratController;
-use App\Http\Controllers\PengumumanController;
-use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\JadwalKegiatanController;
+use App\Http\Controllers\KalenderController;
+use App\Http\Controllers\KartuKeluargaController;
+use App\Http\Controllers\KasRTController;
 use App\Http\Controllers\KegiatanRTController;
 use App\Http\Controllers\NotulenRapatController;
-use App\Http\Controllers\StrukturRTController;
-use App\Http\Controllers\PengaturanController;
+use App\Http\Controllers\PageController;
+use App\Http\Controllers\PemilihPemiluController;
+use App\Http\Controllers\PeminjamanBarangController;
 use App\Http\Controllers\PengaduanController;
+use App\Http\Controllers\PengaturanController;
+use App\Http\Controllers\PengumumanController;
+use App\Http\Controllers\PinjamanController;
 use App\Http\Controllers\PollingController;
 use App\Http\Controllers\ProfilController;
-use App\Http\Controllers\AkunController;
-use App\Http\Controllers\PageController;
+use App\Http\Controllers\RencanaPembelianController;
+use App\Http\Controllers\StrukturRTController;
 use App\Http\Controllers\SubscribeController;
+use App\Http\Controllers\SubscribeIncomeController;
 use App\Http\Controllers\SubscribePaymentController;
 use App\Http\Controllers\SubscribeVerificationController;
+use App\Http\Controllers\SuratController;
+use App\Http\Controllers\TabunganController;
+use App\Http\Controllers\UMKMController;
+use App\Http\Controllers\VisitorController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -288,8 +289,8 @@ Route::middleware(['auth', 'subscription.access'])->group(function () {
     |----------------------------------------------------------------------
     | Subscribe warga — khusus Administrator
     |----------------------------------------------------------------------
-    | Tahap ini menyimpan status fitur dan rekening pembayaran. Penerapan
-    | pembatasan akses serta transaksi warga ditambahkan pada tahap berikutnya.
+    | Pengaturan, verifikasi pembayaran, dan laporan pendapatan subscribe.
+    | Seluruh rute di bagian ini tidak dapat diakses oleh role lain.
     */
     Route::middleware('role:admin')->group(function () {
         Route::get('subscribe', [SubscribeController::class, 'index'])->name('subscribe.index');
@@ -298,6 +299,9 @@ Route::middleware(['auth', 'subscription.access'])->group(function () {
         Route::get('subscribe/verifikasi/{payment}/bukti', [SubscribeVerificationController::class, 'proof'])->name('subscribe.verifications.proof');
         Route::patch('subscribe/verifikasi/{payment}/aktifkan', [SubscribeVerificationController::class, 'approve'])->name('subscribe.verifications.approve');
         Route::patch('subscribe/verifikasi/{payment}/tolak', [SubscribeVerificationController::class, 'reject'])->name('subscribe.verifications.reject');
+        Route::get('subscribe/pendapatan', [SubscribeIncomeController::class, 'index'])->name('subscribe.income.index');
+        Route::get('subscribe/pendapatan/export/pdf', [SubscribeIncomeController::class, 'exportPdf'])->name('subscribe.income.export.pdf');
+        Route::get('subscribe/pendapatan/export/excel', [SubscribeIncomeController::class, 'exportExcel'])->name('subscribe.income.export.excel');
     });
 
     /*

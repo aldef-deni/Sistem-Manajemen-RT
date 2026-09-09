@@ -18,23 +18,23 @@
         @include('components.sidebar')
 
         {{-- Main Content --}}
-        <div class="flex-1 flex flex-col min-h-screen">
+        <div class="flex min-h-screen min-w-0 flex-1 flex-col">
             {{-- Top Header --}}
-            <header class="top-header sticky top-0 z-40 px-6 py-3 flex items-center justify-between">
-                <div class="flex items-center gap-3">
+            <header class="top-header sticky top-0 z-40 flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
+                <div class="flex min-w-0 items-center gap-2 sm:gap-3">
                     {{-- Mobile menu toggle --}}
                     <button onclick="document.getElementById('sidebar').classList.toggle('open')" class="md:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-500">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                         </svg>
                     </button>
-                    <div>
-                        <h1 class="text-lg font-semibold text-slate-800">@yield('page-title', 'Dashboard')</h1>
-                        <p class="text-xs text-slate-400">@yield('page-subtitle', '')</p>
+                    <div class="min-w-0">
+                        <h1 class="truncate text-lg font-semibold text-slate-800">@yield('page-title', 'Dashboard')</h1>
+                        <p class="hidden truncate text-xs text-slate-400 sm:block">@yield('page-subtitle', '')</p>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-4">
+                <div class="flex shrink-0 items-center gap-2 sm:gap-4">
                     {{-- Notifikasi pembayaran subscribe untuk Administrator --}}
                     @if(auth()->user()->role === 'admin')
                         <a href="{{ route('subscribe.verifications.index') }}" title="Pembayaran subscribe menunggu verifikasi"
@@ -51,7 +51,7 @@
                     @endif
 
                     {{-- User dropdown --}}
-                    <div class="flex items-center gap-3 pl-4 border-l border-slate-200">
+                    <div class="flex items-center gap-2 border-l border-slate-200 pl-2 sm:gap-3 sm:pl-4">
                         <div class="text-right hidden sm:block">
                             <p class="text-sm font-medium text-slate-700">{{ auth()->user()->name ?? 'Administrator' }}</p>
                             <p class="text-xs text-slate-400">{{ auth()->user()->role_label }}</p>
@@ -64,7 +64,7 @@
             </header>
 
             {{-- Page Content --}}
-            <main class="flex-1 px-5 py-5 page-content">
+            <main class="page-content flex-1 px-4 py-5 sm:px-5">
                 @yield('content')
             </main>
         </div>
