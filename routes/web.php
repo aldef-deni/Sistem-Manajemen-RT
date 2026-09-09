@@ -30,6 +30,8 @@ use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\AkunController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SubscribeController;
+use App\Http\Controllers\SubscribePaymentController;
+use App\Http\Controllers\SubscribeVerificationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -49,9 +51,13 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 | Halaman informasi dan layanan mandiri: melihat pengumuman, mengajukan
 | pengaduan, ikut polling, mendaftarkan UMKM, dan mengajukan bantuan.
 */
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'subscription.access'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Pembayaran subscribe pengguna (selalu dapat diakses saat menu lain terkunci).
+    Route::get('subscribe/pembayaran', [SubscribePaymentController::class, 'index'])->name('subscribe.payment.index');
+    Route::post('subscribe/pembayaran', [SubscribePaymentController::class, 'store'])->name('subscribe.payment.store');
 
     // Profil sendiri
     Route::get('profil-saya', [ProfilController::class, 'index'])->name('profil-saya');
@@ -288,6 +294,10 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::get('subscribe', [SubscribeController::class, 'index'])->name('subscribe.index');
         Route::put('subscribe', [SubscribeController::class, 'update'])->name('subscribe.update');
+        Route::get('subscribe/verifikasi', [SubscribeVerificationController::class, 'index'])->name('subscribe.verifications.index');
+        Route::get('subscribe/verifikasi/{payment}/bukti', [SubscribeVerificationController::class, 'proof'])->name('subscribe.verifications.proof');
+        Route::patch('subscribe/verifikasi/{payment}/aktifkan', [SubscribeVerificationController::class, 'approve'])->name('subscribe.verifications.approve');
+        Route::patch('subscribe/verifikasi/{payment}/tolak', [SubscribeVerificationController::class, 'reject'])->name('subscribe.verifications.reject');
     });
 
     /*

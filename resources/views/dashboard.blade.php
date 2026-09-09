@@ -8,6 +8,38 @@
 
 @section('content')
 <div class="space-y-6">
+    @if(($subscriptionStatus['applies'] ?? false))
+        @if($subscriptionStatus['state'] === 'active')
+            <div class="flex flex-col gap-3 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <div>
+                        <p class="font-bold text-emerald-900">Subscribe aktif</p>
+                        <p class="text-sm text-emerald-700">Akses aktif hingga {{ $subscriptionStatus['active_payment']->ends_at->translatedFormat('d F Y, H:i') }} WIB.</p>
+                    </div>
+                </div>
+                <a href="{{ route('subscribe.payment.index') }}" class="text-sm font-semibold text-emerald-700 hover:underline">Lihat riwayat</a>
+            </div>
+        @else
+            <div class="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white shadow-lg shadow-amber-500/20">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19H18.93c1.54 0 2.5-1.667 1.73-3L13.73 4c-.77-1.333-2.69-1.333-3.46 0L3.34 16c-.77 1.333.19 3 1.73 3z"/></svg>
+                    </div>
+                    <div>
+                        <p class="font-bold text-amber-900">Akses fitur terkunci</p>
+                        <p class="text-sm text-amber-700">
+                            {{ $subscriptionStatus['state'] === 'pending' ? 'Pembayaran sedang menunggu verifikasi Administrator.' : 'Selesaikan subscribe untuk membuka menu yang terkunci.' }}
+                        </p>
+                    </div>
+                </div>
+                <button type="button" onclick="window.openSubscribeModal()" class="rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-bold text-white shadow hover:bg-amber-600">Lihat Subscribe</button>
+            </div>
+        @endif
+    @endif
+
     {{-- Welcome & Info Row --}}
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -137,16 +169,16 @@
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
                     <div class="w-2 h-2 rounded-full bg-amber-400"></div>
-                    <h3 class="text-sm font-semibold text-slate-700">Pembayaran Baru Pending</h3>
+                    <h3 class="text-sm font-semibold text-slate-700">{{ auth()->user()->role === 'admin' ? 'Pembayaran Subscribe Pending' : 'Pembayaran Baru Pending' }}</h3>
                 </div>
                 <span class="text-xs text-slate-400">Menunggu Konfirmasi</span>
             </div>
             <div class="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
                 <div>
-                    <p class="text-2xl font-bold text-slate-800">0</p>
+                    <p class="text-2xl font-bold text-slate-800">{{ auth()->user()->role === 'admin' ? $subscriptionPendingCount : 0 }}</p>
                     <p class="text-xs text-slate-400">Transaksi menunggu konfirmasi</p>
                 </div>
-                <a href="{{ route('pembayaran') }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                <a href="{{ auth()->user()->role === 'admin' ? route('subscribe.verifications.index') : route('pembayaran') }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
                     Lihat Detail
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>

@@ -78,6 +78,9 @@
                     'label' => 'Subscribe',
                     'route' => 'subscribe.index',
                     'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h2m4 0h4M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>',
+                    'children' => [
+                        ['label' => 'Verifikasi Pembayaran', 'route' => 'subscribe.verifications.index', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>'],
+                    ],
                 ],
             ],
         ],
@@ -132,6 +135,20 @@
     }
 
     $menu = array_values($menu);
+
+    // Tiga kelompok berbayar tetap terlihat, tetapi tidak menghasilkan link
+    // ketika subscribe role pengguna belum aktif. Akses URL dijaga lagi oleh
+    // middleware agar penguncian tidak hanya bergantung pada tampilan.
+    if ($subscriptionStatus['locked'] ?? false) {
+        $kelompokSubscribe = ['Keuangan', 'Kegiatan & Info', 'Aspirasi & Partisipasi'];
+
+        foreach ($menu as &$group) {
+            if (in_array($group['group'] ?? null, $kelompokSubscribe, true)) {
+                $group['locked'] = true;
+            }
+        }
+        unset($group);
+    }
 
     /*
      * Sebuah item menu dianggap AKTIF bila:
@@ -197,6 +214,15 @@
     .sidebar .menu-sub.open .menu-sub-items { max-height: 220px; }
     .sidebar .menu-sub-items .menu-item { margin-left: 0.375rem; margin-right: 0.375rem; padding-left: 0.5rem; }
     .sidebar .menu-sub-items .menu-item svg { width: 15px; height: 15px; }
+    .sidebar .menu-group-label.menu-group-locked {
+        width: calc(100% - 1rem);
+        border: 1px solid rgba(245, 158, 11, 0.18);
+        background: rgba(245, 158, 11, 0.08);
+        color: #fbbf24;
+        text-align: left;
+    }
+    .sidebar .menu-group-label.menu-group-locked:hover { color: #fde68a; background: rgba(245, 158, 11, 0.13); }
+    .sidebar .menu-group-lock { width: 15px; height: 15px; flex-shrink: 0; }
 
     /* ---- Merek Aldef Tech di kepala sidebar ---- */
     .sidebar-brand {
@@ -254,50 +280,61 @@
                     <span>{{ $item['label'] }}</span>
                 </a>
             @elseif(isset($item['group']))
-                <div class="menu-group {{ $anyItemActive($item['items'], $currentRoute) ? 'open' : '' }}" data-group>
-                    <div class="menu-group-label" onclick="this.parentElement.classList.toggle('open')">
-                        <span>{{ $item['group'] }}</span>
-                        <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
+                @if($item['locked'] ?? false)
+                    <div class="menu-group">
+                        <button type="button" class="menu-group-label menu-group-locked" onclick="window.openSubscribeModal()" aria-label="{{ $item['group'] }} terkunci, lihat informasi subscribe">
+                            <span>{{ $item['group'] }}</span>
+                            <svg class="menu-group-lock" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                        </button>
                     </div>
-                    <div class="menu-group-items">
-                        @foreach($item['items'] as $sub)
-                            @if(isset($sub['children']))
-                                <div class="menu-sub {{ $subMenuOpen($sub, $currentRoute) ? 'open' : '' }}">
-                                    <div class="menu-sub-head">
-                                        <a href="{{ route($sub['route']) }}"
-                                           class="menu-item {{ $isActive($sub['route'], $currentRoute) ? 'active' : '' }}">
-                                            {!! $sub['icon'] !!}
-                                            <span>{{ $sub['label'] }}</span>
-                                        </a>
-                                        <button type="button" class="menu-sub-toggle" title="Buka sub menu {{ $sub['label'] }}"
-                                            onclick="this.closest('.menu-sub').classList.toggle('open')">
-                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                    <div class="menu-sub-items">
-                                        @foreach($sub['children'] as $child)
-                                            <a href="{{ route($child['route']) }}"
-                                               class="menu-item {{ $isActive($child['route'], $currentRoute) ? 'active' : '' }}">
-                                                {!! $child['icon'] !!}
-                                                <span>{{ $child['label'] }}</span>
+                @else
+                    <div class="menu-group {{ $anyItemActive($item['items'], $currentRoute) ? 'open' : '' }}" data-group>
+                        <div class="menu-group-label" onclick="this.parentElement.classList.toggle('open')">
+                            <span>{{ $item['group'] }}</span>
+                            <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </div>
+                        <div class="menu-group-items">
+                            @foreach($item['items'] as $sub)
+                                @if(isset($sub['children']))
+                                    <div class="menu-sub {{ $subMenuOpen($sub, $currentRoute) ? 'open' : '' }}">
+                                        <div class="menu-sub-head">
+                                            <a href="{{ route($sub['route']) }}"
+                                               class="menu-item {{ $isActive($sub['route'], $currentRoute) ? 'active' : '' }}">
+                                                {!! $sub['icon'] !!}
+                                                <span>{{ $sub['label'] }}</span>
                                             </a>
-                                        @endforeach
+                                            <button type="button" class="menu-sub-toggle" title="Buka sub menu {{ $sub['label'] }}"
+                                                onclick="this.closest('.menu-sub').classList.toggle('open')">
+                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="menu-sub-items">
+                                            @foreach($sub['children'] as $child)
+                                                <a href="{{ route($child['route']) }}"
+                                                   class="menu-item {{ $isActive($child['route'], $currentRoute) ? 'active' : '' }}">
+                                                    {!! $child['icon'] !!}
+                                                    <span>{{ $child['label'] }}</span>
+                                                </a>
+                                            @endforeach
+                                        </div>
                                     </div>
-                                </div>
-                            @else
-                                <a href="{{ route($sub['route']) }}"
-                                   class="menu-item {{ $isActive($sub['route'], $currentRoute) ? 'active' : '' }}">
-                                    {!! $sub['icon'] !!}
-                                    <span>{{ $sub['label'] }}</span>
-                                </a>
-                            @endif
-                        @endforeach
+                                @else
+                                    <a href="{{ route($sub['route']) }}"
+                                       class="menu-item {{ $isActive($sub['route'], $currentRoute) ? 'active' : '' }}">
+                                        {!! $sub['icon'] !!}
+                                        <span>{{ $sub['label'] }}</span>
+                                    </a>
+                                @endif
+                            @endforeach
+                        </div>
                     </div>
-                </div>
+                @endif
             @endif
         @endforeach
     </nav>

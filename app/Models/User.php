@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
@@ -123,5 +124,10 @@ class User extends Authenticatable
     public function anggotaKeluarga(): BelongsTo
     {
         return $this->belongsTo(AnggotaKeluarga::class);
+    }
+
+    public function subscribePayments(): HasMany
+    {
+        return $this->hasMany(SubscribePayment::class);
     }
 }
