@@ -1,76 +1,114 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <a href="https://rt.aldeftech.com" target="_blank">
+    <img src="public/images/aldef-landscape.png" width="520" alt="Logo Aldef Tech">
+  </a>
 </p>
 
-## Hak akses Sistem Manajemen RT
+<h1 align="center">Sistem Manajemen RT</h1>
 
-| Area | Administrator | Ketua RT |
-| --- | --- | --- |
-| Operasional harian | Ya | Ya |
-| Data kependudukan (CRUD) | Ya | Ya |
-| Profil RT, tata tertib, dan susunan pengurus | Ya | Ya |
-| Membuat dan menghapus akun pengguna | Ya | Ya |
-| Mengubah data dan password akun lain | Ya | Ya |
-| Menentukan role akun baru | Ya | Tidak (akun baru menjadi Warga) |
-| Mengubah role pengguna | Ya | Tidak |
+<p align="center">
+  <strong>Kelola administrasi, layanan, dan kegiatan warga dalam satu sistem.</strong>
+</p>
 
-Administrator dan Ketua RT dapat mengelola organisasi, operasional, akun, serta
-password pengguna. Khusus penentuan dan perubahan role tetap menjadi kewenangan
-Administrator. Aturan ini diterapkan pada route web dan API; menu web serta
-bidang `hak_akses` pada profil API mengikuti aturan yang sama.
+<p align="center">
+  <a href="https://rt.aldeftech.com"><img src="https://img.shields.io/badge/Demo-rt.aldeftech.com-0ea5e9?style=flat-square" alt="Demo Sistem Manajemen RT"></a>
+  <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 12">
+  <img src="https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP 8.2 atau lebih baru">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4">
+</p>
 
-## About Laravel
+## Tentang Sistem Manajemen RT
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+**Sistem Manajemen RT** adalah aplikasi berbasis web untuk membantu pengurus RT mengelola administrasi lingkungan secara terpusat, tertib, dan transparan. Aplikasi ini menghubungkan kebutuhan pengurus dan warga dalam satu platform, mulai dari pengelolaan data kependudukan dan keuangan hingga penyampaian informasi serta layanan mandiri warga.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Sistem dirancang dengan pembagian hak akses berdasarkan peran agar setiap pengguna memperoleh menu dan kewenangan yang sesuai. Selain antarmuka web, tersedia REST API berbasis token untuk mendukung pengembangan aplikasi mobile.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Fitur Utama
 
-## Learning Laravel
+- **Administrasi kependudukan** — data warga, kartu keluarga, anggota keluarga, serta daftar pemilih pemilu.
+- **Keuangan RT** — pengelolaan iuran warga, kas RT, tabungan, pinjaman, dan arisan.
+- **Inventaris** — pencatatan barang, rencana pembelian, serta peminjaman dan pengembalian barang.
+- **Layanan warga** — pengaduan, surat-menyurat, pengajuan bantuan sosial, pinjaman, dan pendaftaran UMKM.
+- **Informasi dan kegiatan** — pengumuman, kalender, jadwal kegiatan, dokumentasi kegiatan, serta notulen rapat.
+- **Partisipasi warga** — polling dan pemungutan suara dengan pembatasan satu suara per pengguna.
+- **Tata kelola organisasi** — profil RT, struktur kepengurusan, tata tertib, dan manajemen akun.
+- **E-Visitor** — pencatatan kunjungan tamu beserta waktu masuk dan keluar.
+- **API aplikasi mobile** — autentikasi Laravel Sanctum, informasi warga, layanan mandiri, dan fungsi pengelolaan sesuai peran.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Hak Akses
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| Peran | Cakupan |
+| --- | --- |
+| Warga | Dashboard, profil, informasi, polling, pengaduan, dan pengajuan layanan mandiri |
+| Pengurus | Seluruh akses warga ditambah pengelolaan kependudukan, keuangan, inventaris, layanan, dan dokumentasi |
+| Ketua RT | Seluruh akses pengurus ditambah pengaturan organisasi dan pengelolaan akun |
+| Administrator | Akses penuh, termasuk menentukan dan mengubah peran pengguna |
 
-## Laravel Sponsors
+Hak akses diterapkan pada route web dan API. Menu aplikasi juga disaring agar selalu mengikuti kewenangan route yang sebenarnya.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Teknologi
 
-### Premium Partners
+| Area | Teknologi |
+| --- | --- |
+| Backend | PHP 8.2+, Laravel 12 |
+| Frontend | Blade, Tailwind CSS 4, JavaScript |
+| Database | MySQL |
+| Autentikasi API | Laravel Sanctum 4 |
+| Asset bundler | Vite 7 |
+| Testing | PHPUnit 11 |
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Menjalankan Aplikasi
 
-## Contributing
+Pastikan PHP 8.2+, Composer, Node.js, npm, dan database MySQL telah tersedia.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+git clone https://github.com/aldef-deni/Sistem-Manajemen-RT.git
+cd Sistem-Manajemen-RT
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+```
 
-## Code of Conduct
+Atur koneksi MySQL melalui variabel `DB_*` di dalam `.env`, kemudian siapkan database dan aset frontend:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+php artisan migrate
+npm run build
+php artisan serve
+```
 
-## Security Vulnerabilities
+Untuk menjalankan server aplikasi, queue listener, log viewer, dan Vite secara bersamaan:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+composer dev
+```
 
-## License
+Jalankan pengujian dengan:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+composer test
+```
+
+## Kustomisasi
+
+<p align="center">
+  <strong>JIKA BERMINAT UNTUK KUSTOMISASI BISA MENGHUBUNGI DENI AFRIZAL</strong>
+</p>
+
+<p align="center">
+  <a href="https://wa.me/628128968609" target="_blank">
+    <img src="https://img.shields.io/badge/WhatsApp-Hubungi_Deni_Afrizal-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Hubungi Deni Afrizal melalui WhatsApp">
+  </a>
+</p>
+
+## Kontak
+
+Punya kebutuhan sistem administrasi lingkungan, aplikasi bisnis, integrasi, atau pengembangan fitur khusus? Kunjungi [aldeftech.com/contact](https://aldeftech.com/contact) untuk mendiskusikan kebutuhan Anda bersama Aldef Tech.
+
+---
+
+<p align="center">
+  Dikembangkan oleh <a href="https://aldeftech.com">Aldef Tech</a><br>
+  © Aldef Tech. Seluruh hak cipta dilindungi.
+</p>
