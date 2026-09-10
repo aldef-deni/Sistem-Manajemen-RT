@@ -288,10 +288,10 @@ class CrudModulTest extends TestCase
                 'tanggal_lahir' => '1990-01-01',
                 'status_hubungan' => 'Kepala Keluarga',
             ]],
-        ])->assertSessionHasErrors('no_kk'); // panjang no_kk wajib 20 karakter
+        ])->assertSessionHasErrors('no_kk'); // Nomor KK wajib tepat 16 digit.
 
         $this->actingAs($this->admin)->post(route('kartu-keluarga.store'), [
-            'no_kk' => '33150199999999999999',
+            'no_kk' => '3315019999999999',
             'alamat' => 'Jl. Uji Coba No. 1',
             'rt' => '003',
             'rw' => '005',
@@ -304,7 +304,7 @@ class CrudModulTest extends TestCase
             ]],
         ])->assertRedirect();
 
-        $kk = KartuKeluarga::where('no_kk', '33150199999999999999')->firstOrFail();
+        $kk = KartuKeluarga::where('no_kk', '3315019999999999')->firstOrFail();
 
         $this->assertSame(1, $kk->anggota()->count());
         $this->actingAs($this->admin)->get(route('kartu-keluarga.show', $kk))->assertOk();

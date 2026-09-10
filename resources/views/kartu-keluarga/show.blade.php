@@ -124,7 +124,7 @@
                         <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">JK</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Tgl Lahir</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status Hubungan</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Role</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Akun Login</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -150,7 +150,16 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3">
-                                <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-600 rounded-full">{{ $a->role }}</span>
+                                @if ($a->akun)
+                                    <div class="space-y-1">
+                                        <span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-700 rounded-full">Tertaut · {{ $a->akun->role_label }}</span>
+                                        <p class="text-[10px] text-slate-400">{{ $a->akun->username }}</p>
+                                    </div>
+                                @elseif ($a->isKepalaKeluarga())
+                                    <span class="px-2 py-0.5 text-[10px] font-semibold bg-amber-100 text-amber-700 rounded-full">Belum daftar</span>
+                                @else
+                                    <span class="text-xs text-slate-400">Tidak tersedia</span>
+                                @endif
                             </td>
                         </tr>
                     @endforeach

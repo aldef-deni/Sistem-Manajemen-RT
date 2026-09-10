@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\SafeUpload;
-
 use App\Models\AnggotaKeluarga;
 use App\Models\KartuKeluarga;
+use App\Support\SafeUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class KartuKeluargaController extends Controller
 {
@@ -52,7 +53,7 @@ class KartuKeluargaController extends Controller
     {
         $this->authorizeManageKependudukan();
         $validated = $request->validate([
-            'no_kk'     => 'required|string|size:20|unique:kartu_keluarga,no_kk',
+            'no_kk'     => 'required|digits:16|unique:kartu_keluarga,no_kk',
             'rt'        => 'nullable|string|max:5',
             'rw'        => 'nullable|string|max:5',
             'alamat'    => 'required|string',
@@ -63,15 +64,14 @@ class KartuKeluargaController extends Controller
             'file_kk'   => 'nullable|file|mimes:jpg,jpeg,pdf|max:5120',
             // Anggota
             'anggota'                  => 'required|array|min:1',
-            'anggota.*.nik'            => 'required|string|size:16|unique:anggota_keluarga,nik',
+            'anggota.*.nik'            => 'required|digits:16|distinct:strict|unique:anggota_keluarga,nik',
             'anggota.*.nama_lengkap'   => 'required|string|max:100',
             'anggota.*.no_hp'          => 'nullable|string|max:20',
             'anggota.*.jenis_kelamin'  => 'nullable|in:L,P',
             'anggota.*.tanggal_lahir'  => 'nullable|date',
             'anggota.*.status_hubungan'=> 'required|string|max:50',
             'anggota.*.domisili'       => 'nullable|string|max:50',
-            'anggota.*.role'           => 'nullable|string|max:50',
-        ]);
+        ], $this->identityValidationMessages());
 
         $filePath = $this->uploadFileKK($request);
 
@@ -97,7 +97,7 @@ class KartuKeluargaController extends Controller
                     'tanggal_lahir'   => $anggota['tanggal_lahir'] ?? null,
                     'status_hubungan' => $i === 0 ? 'Kepala Keluarga' : ($anggota['status_hubungan'] ?? 'Warga'),
                     'domisili'        => $anggota['domisili'] ?? 'Tetap',
-                    'role'            => $anggota['role'] ?? 'Warga',
+                    'role'            => 'Warga',
                 ]);
             }
         });
@@ -107,7 +107,7 @@ class KartuKeluargaController extends Controller
 
     public function show(KartuKeluarga $kartu_keluarga)
     {
-        $kartu_keluarga->load('anggota');
+        $kartu_keluarga->load('anggota.akun');
         return view('kartu-keluarga.show', compact('kartu_keluarga'));
     }
 
@@ -122,7 +122,7 @@ class KartuKeluargaController extends Controller
     {
         $this->authorizeManageKependudukan();
         $validated = $request->validate([
-            'no_kk'     => 'required|string|size:20|unique:kartu_keluarga,no_kk,' . $kartu_keluarga->id,
+            'no_kk'     => 'required|digits:16|unique:kartu_keluarga,no_kk,' . $kartu_keluarga->id,
             'rt'        => 'nullable|string|max:5',
             'rw'        => 'nullable|string|max:5',
             'alamat'    => 'required|string',
@@ -132,16 +132,22 @@ class KartuKeluargaController extends Controller
             'kode_pos'  => 'nullable|string|max:10',
             'file_kk'   => 'nullable|file|mimes:jpg,jpeg,pdf|max:5120',
             'anggota'                  => 'required|array|min:1',
-            'anggota.*.id'             => 'nullable|integer',
-            'anggota.*.nik'            => 'required|string|size:16',
+            'anggota.*.id'             => [
+                'nullable',
+                'integer',
+                Rule::exists('anggota_keluarga', 'id')
+                    ->where(fn ($query) => $query->where('kartu_keluarga_id', $kartu_keluarga->id)),
+            ],
+            'anggota.*.nik'            => 'required|digits:16|distinct:strict',
             'anggota.*.nama_lengkap'   => 'required|string|max:100',
             'anggota.*.no_hp'          => 'nullable|string|max:20',
             'anggota.*.jenis_kelamin'  => 'nullable|in:L,P',
             'anggota.*.tanggal_lahir'  => 'nullable|date',
             'anggota.*.status_hubungan'=> 'required|string|max:50',
             'anggota.*.domisili'       => 'nullable|string|max:50',
-            'anggota.*.role'           => 'nullable|string|max:50',
-        ]);
+        ], $this->identityValidationMessages());
+
+        $this->ensureUniqueNiks($validated['anggota']);
 
         $filePath = $this->uploadFileKK($request, $kartu_keluarga->file_kk);
 
@@ -173,7 +179,7 @@ class KartuKeluargaController extends Controller
                             'tanggal_lahir'   => $anggota['tanggal_lahir'] ?: null,
                             'status_hubungan' => $i === 0 ? 'Kepala Keluarga' : ($anggota['status_hubungan'] ?? 'Warga'),
                             'domisili'        => $anggota['domisili'] ?? 'Tetap',
-                            'role'            => $anggota['role'] ?? 'Warga',
+                            'role'            => 'Warga',
                         ]);
                     $existingIds[] = $anggota['id'];
                 } else {
@@ -186,7 +192,7 @@ class KartuKeluargaController extends Controller
                         'tanggal_lahir'   => $anggota['tanggal_lahir'] ?? null,
                         'status_hubungan' => $i === 0 ? 'Kepala Keluarga' : ($anggota['status_hubungan'] ?? 'Warga'),
                         'domisili'        => $anggota['domisili'] ?? 'Tetap',
-                        'role'            => $anggota['role'] ?? 'Warga',
+                        'role'            => 'Warga',
                     ]);
                     $existingIds[] = $new->id;
                 }
@@ -233,5 +239,41 @@ class KartuKeluargaController extends Controller
         if ($path && file_exists(public_path($path))) {
             @unlink(public_path($path));
         }
+    }
+
+    /**
+     * Pastikan NIK tetap unik ketika beberapa anggota diperbarui bersamaan.
+     * Rule unique biasa tidak dapat mengabaikan ID yang berbeda pada array.
+     */
+    private function ensureUniqueNiks(array $members): void
+    {
+        $errors = [];
+
+        foreach ($members as $index => $member) {
+            $duplicate = AnggotaKeluarga::query()
+                ->where('nik', $member['nik'])
+                ->when(! empty($member['id']), fn ($query) => $query->whereKeyNot($member['id']))
+                ->exists();
+
+            if ($duplicate) {
+                $errors["anggota.{$index}.nik"] = 'NIK sudah terdaftar pada data warga lain.';
+            }
+        }
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+    }
+
+    private function identityValidationMessages(): array
+    {
+        return [
+            'no_kk.digits' => 'Nomor KK harus terdiri dari tepat 16 digit angka.',
+            'no_kk.unique' => 'Nomor KK sudah terdaftar.',
+            'anggota.*.nik.digits' => 'Setiap NIK harus terdiri dari tepat 16 digit angka.',
+            'anggota.*.nik.distinct' => 'NIK anggota keluarga tidak boleh sama.',
+            'anggota.*.nik.unique' => 'NIK sudah terdaftar pada data warga lain.',
+            'anggota.*.id.exists' => 'Data anggota tidak ditemukan pada Kartu Keluarga ini.',
+        ];
     }
 }

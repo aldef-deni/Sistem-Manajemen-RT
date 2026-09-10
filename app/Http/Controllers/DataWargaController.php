@@ -10,7 +10,7 @@ class DataWargaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = AnggotaKeluarga::with('kartuKeluarga');
+        $query = AnggotaKeluarga::with(['kartuKeluarga', 'akun']);
 
         // Search
         if ($search = $request->input('search')) {

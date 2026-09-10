@@ -44,7 +44,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                     <div class="md:col-span-6">
                         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Nomor KK <span class="text-red-500">*</span></label>
-                        <input type="text" name="no_kk" value="{{ old('no_kk') }}" maxlength="20" required
+                        <input type="text" name="no_kk" value="{{ old('no_kk') }}" inputmode="numeric" pattern="[0-9]{16}" maxlength="16" required autocomplete="off"
                                placeholder="16 digit nomor KK"
                                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
                     </div>
@@ -145,7 +145,6 @@
                                 <th class="px-3 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Tgl Lahir</th>
                                 <th class="px-3 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Status Hub. <span class="text-red-500">*</span></th>
                                 <th class="px-3 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Domisili</th>
-                                <th class="px-3 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Role</th>
                                 <th class="px-3 py-2 w-10"></th>
                             </tr>
                         </thead>
@@ -156,7 +155,7 @@
                                     <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">1</span>
                                 </td>
                                 <td class="px-3 py-2">
-                                    <input type="text" name="anggota[0][nik]" maxlength="16" required placeholder="16 digit"
+                                    <input type="text" name="anggota[0][nik]" inputmode="numeric" pattern="[0-9]{16}" maxlength="16" required autocomplete="off" placeholder="16 digit"
                                            class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
                                 </td>
                                 <td class="px-3 py-2">
@@ -192,13 +191,6 @@
                                     </select>
                                 </td>
                                 <td class="px-3 py-2">
-                                    <select name="anggota[0][role]"
-                                            class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
-                                        <option value="Warga">Warga</option>
-                                        <option value="Admin">Admin</option>
-                                    </select>
-                                </td>
-                                <td class="px-3 py-2">
                                     <button type="button" onclick="removeAnggota(this)" class="w-7 h-7 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors" title="Hapus" disabled>
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
@@ -215,7 +207,7 @@
                     <svg class="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                     </svg>
-                    <p class="text-xs text-blue-600">Setiap anggota otomatis mendapat akun login dengan <strong>Username = NIK</strong> dan <strong>Password = password</strong>. Role default: <strong>Warga</strong>.</p>
+                    <p class="text-xs text-blue-600">Setelah data disimpan, <strong>Kepala Keluarga</strong> dapat membuat satu akun Warga melalui <strong>{{ url('/daftar-warga') }}</strong> dengan verifikasi NIK dan Nomor KK. Anggota keluarga lain tidak otomatis mendapat akun.</p>
                 </div>
             </div>
         </div>
@@ -232,7 +224,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
-                Simpan KK & Buat User
+                Simpan Kartu Keluarga
             </button>
         </div>
     </form>
@@ -251,7 +243,7 @@ function addAnggota() {
             <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">${anggotaIndex + 1}</span>
         </td>
         <td class="px-3 py-2">
-            <input type="text" name="anggota[${anggotaIndex}][nik]" maxlength="16" required placeholder="16 digit"
+            <input type="text" name="anggota[${anggotaIndex}][nik]" inputmode="numeric" pattern="[0-9]{16}" maxlength="16" required autocomplete="off" placeholder="16 digit"
                    class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
         </td>
         <td class="px-3 py-2">
@@ -292,13 +284,6 @@ function addAnggota() {
                 <option value="Tetap">Tetap</option>
                 <option value="Kontrakan">Kontrakan</option>
                 <option value="Kos">Kos</option>
-            </select>
-        </td>
-        <td class="px-3 py-2">
-            <select name="anggota[${anggotaIndex}][role]"
-                    class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
-                <option value="Warga">Warga</option>
-                <option value="Admin">Admin</option>
             </select>
         </td>
         <td class="px-3 py-2">

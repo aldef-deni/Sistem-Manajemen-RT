@@ -5,9 +5,11 @@ namespace Tests\Feature;
 use App\Models\AnggotaKeluarga;
 use App\Models\KartuKeluarga;
 use App\Models\User;
+use Database\Seeders\KartuKeluargaSeeder;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class ResidentRegistrationTest extends TestCase
@@ -184,6 +186,177 @@ class ResidentRegistrationTest extends TestCase
             'username' => 'tautan-kedua',
             'anggota_keluarga_id' => $member->id,
         ]);
+    }
+
+    public function test_data_kk_baru_langsung_dapat_dipakai_kepala_keluarga_untuk_mendaftar(): void
+    {
+        $ketua = User::factory()->create([
+            'username' => 'ketua-input-kk',
+            'role' => 'ketua',
+        ]);
+
+        $this->actingAs($ketua)->post(route('kartu-keluarga.store'), [
+            'no_kk' => '3273010101010020',
+            'alamat' => 'Jalan Pendaftaran Langsung',
+            'rt' => '001',
+            'rw' => '002',
+            'anggota' => [[
+                'nik' => '3273010101010021',
+                'nama_lengkap' => 'Kepala Keluarga Baru',
+                'jenis_kelamin' => 'L',
+                'status_hubungan' => 'Kepala Keluarga',
+                'domisili' => 'Tetap',
+            ]],
+        ])->assertRedirect(route('kartu-keluarga.index'));
+
+        $member = AnggotaKeluarga::where('nik', '3273010101010021')->firstOrFail();
+        $this->assertNull($member->akun, 'Input KK tidak boleh membuat akun atau password bawaan secara diam-diam.');
+
+        auth()->logout();
+        $this->app['auth']->forgetGuards();
+
+        $this->post(route('register.resident.verify'), [
+            'nik' => $member->nik,
+            'no_kk' => '3273010101010020',
+        ])->assertRedirect(route('register.resident.account'));
+
+        $this->post(route('register.resident.store'), [
+            'username' => 'kepala-baru',
+            'email' => 'kepala.baru@example.test',
+            'password' => 'rahasia-aman',
+            'password_confirmation' => 'rahasia-aman',
+        ])->assertRedirect(route('dashboard'));
+
+        $this->assertDatabaseHas('users', [
+            'username' => 'kepala-baru',
+            'role' => 'warga',
+            'anggota_keluarga_id' => $member->id,
+        ]);
+    }
+
+    public function test_form_kk_menolak_identitas_yang_bukan_16_digit_dan_nik_ganda(): void
+    {
+        $admin = User::factory()->create([
+            'username' => 'admin-validasi-identitas',
+            'role' => 'admin',
+        ]);
+
+        $payload = [
+            'no_kk' => '32730101010100220',
+            'alamat' => 'Jalan Identitas Tidak Valid',
+            'anggota' => [[
+                'nik' => '327301010101002A',
+                'nama_lengkap' => 'Identitas Tidak Valid',
+                'status_hubungan' => 'Kepala Keluarga',
+            ]],
+        ];
+
+        $this->actingAs($admin)
+            ->post(route('kartu-keluarga.store'), $payload)
+            ->assertSessionHasErrors(['no_kk', 'anggota.0.nik']);
+
+        $payload['no_kk'] = '3273010101010022';
+        $payload['anggota'] = [
+            [
+                'nik' => '3273010101010023',
+                'nama_lengkap' => 'Kepala Duplikat',
+                'status_hubungan' => 'Kepala Keluarga',
+            ],
+            [
+                'nik' => '3273010101010023',
+                'nama_lengkap' => 'Anak Duplikat',
+                'status_hubungan' => 'Anak',
+            ],
+        ];
+
+        $this->actingAs($admin)
+            ->post(route('kartu-keluarga.store'), $payload)
+            ->assertSessionHasErrors(['anggota.1.nik']);
+    }
+
+    public function test_edit_kk_menolak_nik_yang_sudah_dipakai_warga_lain(): void
+    {
+        $admin = User::factory()->create([
+            'username' => 'admin-edit-identitas',
+            'role' => 'admin',
+        ]);
+        $first = $this->resident('3273010101010024', '3273010101010025');
+        $second = $this->resident('3273010101010026', '3273010101010027');
+
+        $this->actingAs($admin)->put(route('kartu-keluarga.update', $second->kartuKeluarga), [
+            'no_kk' => $second->kartuKeluarga->no_kk,
+            'alamat' => $second->kartuKeluarga->alamat,
+            'anggota' => [[
+                'id' => $second->id,
+                'nik' => $first->nik,
+                'nama_lengkap' => $second->nama_lengkap,
+                'status_hubungan' => 'Kepala Keluarga',
+            ]],
+        ])->assertSessionHasErrors('anggota.0.nik');
+
+        $this->assertSame('3273010101010026', $second->fresh()->nik);
+    }
+
+    public function test_data_contoh_memakai_nik_dan_nomor_kk_16_digit_yang_unik(): void
+    {
+        $this->seed(KartuKeluargaSeeder::class);
+
+        $niks = AnggotaKeluarga::pluck('nik');
+        $familyNumbers = KartuKeluarga::pluck('no_kk');
+
+        $this->assertNotEmpty($niks);
+        $this->assertCount($niks->count(), $niks->unique());
+        $this->assertTrue($niks->every(fn ($nik) => preg_match('/^\d{16}$/D', $nik) === 1));
+        $this->assertTrue($familyNumbers->every(fn ($number) => preg_match('/^\d{16}$/D', $number) === 1));
+    }
+
+    public function test_migrasi_menormalkan_nik_data_contoh_lama_dan_memasang_constraint_unik(): void
+    {
+        Schema::table('anggota_keluarga', function ($table) {
+            $table->dropUnique('anggota_keluarga_nik_unique');
+        });
+
+        $legacy = $this->resident('33150100000000021', '3315010000000002');
+        $migration = require database_path('migrations/2026_09_10_000004_normalize_resident_identifiers.php');
+        $migration->up();
+
+        $this->assertSame('3315010000000021', $legacy->fresh()->nik);
+
+        $this->expectException(QueryException::class);
+        AnggotaKeluarga::create([
+            'kartu_keluarga_id' => $legacy->kartu_keluarga_id,
+            'nik' => '3315010000000021',
+            'nama_lengkap' => 'NIK Duplikat',
+            'status_hubungan' => 'Anak',
+        ]);
+    }
+
+    public function test_detail_kk_menampilkan_status_akun_login_sebenarnya(): void
+    {
+        $admin = User::factory()->create([
+            'username' => 'admin-status-akun',
+            'role' => 'admin',
+        ]);
+        $member = $this->resident('3273010101010028', '3273010101010029');
+
+        $this->actingAs($admin)
+            ->get(route('kartu-keluarga.show', $member->kartuKeluarga))
+            ->assertOk()
+            ->assertSee('Belum daftar')
+            ->assertDontSee('Username = NIK');
+
+        User::factory()->create([
+            'name' => $member->nama_lengkap,
+            'username' => 'kepala-tertaut',
+            'role' => 'warga',
+            'anggota_keluarga_id' => $member->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('kartu-keluarga.show', $member->kartuKeluarga))
+            ->assertOk()
+            ->assertSee('Tertaut')
+            ->assertSee('kepala-tertaut');
     }
 
     private function resident(string $nik, string $noKk, string $status = 'Kepala Keluarga'): AnggotaKeluarga

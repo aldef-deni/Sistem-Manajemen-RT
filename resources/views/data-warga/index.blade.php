@@ -205,7 +205,13 @@
                                         <a href="{{ route('kartu-keluarga.show', $w->kartu_keluarga_id) }}" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors">
                                             {{ $w->nama_lengkap }}
                                         </a>
-                                        <p class="text-[10px] text-slate-400">{{ $w->role }}</p>
+                                        @if ($w->akun)
+                                            <p class="text-[10px] font-medium text-emerald-600">Akun: {{ $w->akun->username }}</p>
+                                        @elseif ($w->isKepalaKeluarga())
+                                            <p class="text-[10px] font-medium text-amber-600">Belum punya akun</p>
+                                        @else
+                                            <p class="text-[10px] text-slate-400">Anggota keluarga</p>
+                                        @endif
                                     </div>
                                 </div>
                             </td>
