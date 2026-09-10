@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\SettingRT;
 use App\Models\SubscribePayment;
 use App\Models\User;
+use App\Support\SubscriptionPaymentMethods;
 use Carbon\Carbon;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -129,6 +130,80 @@ class SubscriptionFlowTest extends TestCase
             ->assertSee('id="proof-preview-pdf"', false)
             ->assertSee('URL.createObjectURL', false)
             ->assertSee('Ganti file');
+    }
+
+    public function test_warga_memilih_tujuan_dan_admin_melihat_rekening_yang_dituju(): void
+    {
+        $this->aktifkanUntuk(['warga']);
+        $methods = app(SubscriptionPaymentMethods::class)->normalize([
+            [
+                'type' => 'bank',
+                'provider' => 'BCA',
+                'account_number' => '7510466351',
+                'account_name' => 'Deni Afrizal, SE.',
+            ],
+            [
+                'type' => 'ewallet',
+                'provider' => 'DANA',
+                'account_number' => '081234567890',
+                'account_name' => 'Deni Afrizal',
+            ],
+        ]);
+        SettingRT::set('subscribe_payment_methods', json_encode($methods, JSON_THROW_ON_ERROR));
+        $warga = $this->sebagai('warga');
+
+        $this->actingAs($warga)
+            ->get(route('subscribe.payment.index'))
+            ->assertOk()
+            ->assertSee('Pilih Tujuan Pembayaran')
+            ->assertSee('BCA')
+            ->assertSee('DANA')
+            ->assertSee('081234567890');
+
+        $this->actingAs($warga)
+            ->post(route('subscribe.payment.store'), [
+                'payment_method_id' => $methods[1]['id'],
+                'sender_bank' => 'Bank BRI',
+                'sender_account_name' => $warga->name,
+                'paid_at' => now()->toDateString(),
+                'proof' => UploadedFile::fake()->image('bukti-dana.jpg'),
+            ])
+            ->assertRedirect(route('subscribe.payment.index'));
+
+        $payment = SubscribePayment::where('user_id', $warga->id)->latest('id')->firstOrFail();
+        $this->assertSame('ewallet', $payment->destination_type);
+        $this->assertSame('DANA', $payment->destination_bank);
+        $this->assertSame('081234567890', $payment->destination_account_number);
+        $this->assertSame('Deni Afrizal', $payment->destination_account_name);
+
+        $this->actingAs($this->sebagai('admin'))
+            ->get(route('subscribe.verifications.index'))
+            ->assertOk()
+            ->assertSee('Tujuan Pembayaran')
+            ->assertSee('E-Wallet')
+            ->assertSee('DANA')
+            ->assertSee('081234567890')
+            ->assertSee('Deni Afrizal');
+    }
+
+    public function test_warga_tidak_dapat_mengirim_ke_tujuan_yang_tidak_terdaftar(): void
+    {
+        $this->aktifkanUntuk(['warga']);
+        $warga = $this->sebagai('warga');
+
+        $this->actingAs($warga)
+            ->from(route('subscribe.payment.index'))
+            ->post(route('subscribe.payment.store'), [
+                'payment_method_id' => 'pm_tujuan_palsu',
+                'sender_bank' => 'Bank BRI',
+                'sender_account_name' => $warga->name,
+                'paid_at' => now()->toDateString(),
+                'proof' => UploadedFile::fake()->image('bukti-transfer.jpg'),
+            ])
+            ->assertRedirect(route('subscribe.payment.index'))
+            ->assertSessionHasErrors('payment_method_id');
+
+        $this->assertDatabaseCount('subscribe_payments', 0);
     }
 
     public function test_hanya_admin_dapat_melihat_bukti_dan_memverifikasi_pembayaran(): void

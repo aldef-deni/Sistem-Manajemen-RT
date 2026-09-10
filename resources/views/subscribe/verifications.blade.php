@@ -44,10 +44,10 @@
 
     <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[1080px] text-left text-sm">
+            <table class="w-full min-w-[1320px] text-left text-sm">
                 <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                     <tr>
-                        <th class="px-5 py-3">Pengguna</th><th class="px-5 py-3">Pembayaran</th><th class="px-5 py-3">Bukti</th><th class="px-5 py-3">Status</th><th class="px-5 py-3">Tindakan</th>
+                        <th class="px-5 py-3">Pengguna</th><th class="px-5 py-3">Pembayaran</th><th class="px-5 py-3">Tujuan Pembayaran</th><th class="px-5 py-3">Bukti</th><th class="px-5 py-3">Status</th><th class="px-5 py-3">Tindakan</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -61,6 +61,17 @@
                                 <p class="font-bold text-slate-900">Rp {{ number_format($payment->amount, 0, ',', '.') }}</p>
                                 <p class="mt-1 text-xs text-slate-500">{{ $payment->sender_bank }} · a.n. {{ $payment->sender_account_name }}</p>
                                 <p class="mt-1 text-xs text-slate-400">Transfer {{ $payment->paid_at->format('d/m/Y') }} · dikirim {{ $payment->created_at->diffForHumans() }}</p>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="min-w-52 rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-3">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider {{ $payment->destination_type === 'ewallet' ? 'bg-violet-100 text-violet-700' : 'bg-blue-100 text-blue-700' }}">{{ $payment->destination_type_label }}</span>
+                                        <svg class="h-4 w-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h2m4 0h4M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                    </div>
+                                    <p class="mt-2 text-sm font-extrabold text-slate-900">{{ $payment->destination_bank }}</p>
+                                    <p class="mt-1 font-mono text-xs font-bold tracking-wide text-slate-700">{{ $payment->destination_account_number }}</p>
+                                    <p class="mt-1 text-[11px] text-slate-500">a.n. {{ $payment->destination_account_name }}</p>
+                                </div>
                             </td>
                             <td class="px-5 py-4">
                                 <a href="{{ route('subscribe.verifications.proof', $payment) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100">
@@ -93,7 +104,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="px-5 py-14 text-center text-slate-400">Tidak ada pembayaran pada filter ini.</td></tr>
+                        <tr><td colspan="6" class="px-5 py-14 text-center text-slate-400">Tidak ada pembayaran pada filter ini.</td></tr>
                     @endforelse
                 </tbody>
             </table>

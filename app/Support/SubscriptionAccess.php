@@ -47,6 +47,8 @@ class SubscriptionAccess
         'api/kelola/pengaduan*',
     ];
 
+    public function __construct(private readonly SubscriptionPaymentMethods $paymentMethods) {}
+
     public function enabled(): bool
     {
         return SettingRT::get('subscribe_enabled', '0') === '1';
@@ -101,6 +103,7 @@ class SubscriptionAccess
      *   pending_payment: SubscribePayment|null,
      *   latest_payment: SubscribePayment|null,
      *   price: int,
+     *   payment_methods: list<array{id: string, type: string, provider: string, account_number: string, account_name: string, qris_path: string|null}>,
      *   bank: string,
      *   account_number: string,
      *   account_name: string
@@ -123,6 +126,8 @@ class SubscriptionAccess
             $latestPayment?->status === SubscribePayment::STATUS_APPROVED => 'expired',
             default => 'required',
         };
+        $paymentMethods = $this->paymentMethods->all();
+        $primaryPaymentMethod = $paymentMethods[0] ?? null;
 
         return [
             'applies' => $applies,
@@ -132,9 +137,11 @@ class SubscriptionAccess
             'pending_payment' => $pendingPayment,
             'latest_payment' => $latestPayment,
             'price' => (int) SettingRT::get('subscribe_price', 0),
-            'bank' => (string) SettingRT::get('subscribe_bank', ''),
-            'account_number' => (string) SettingRT::get('subscribe_account_number', ''),
-            'account_name' => (string) SettingRT::get('subscribe_account_name', ''),
+            'payment_methods' => $paymentMethods,
+            // Dipertahankan untuk kompatibilitas kode lama selama transisi multi-rekening.
+            'bank' => $primaryPaymentMethod['provider'] ?? '',
+            'account_number' => $primaryPaymentMethod['account_number'] ?? '',
+            'account_name' => $primaryPaymentMethod['account_name'] ?? '',
         ];
     }
 

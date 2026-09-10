@@ -55,6 +55,11 @@
                 <div>
                     <h2 class="text-lg font-extrabold text-amber-900">Menunggu verifikasi Administrator</h2>
                     <p class="mt-1 text-sm leading-6 text-amber-700">Bukti pembayaran telah diterima pada {{ $status['pending_payment']->created_at->translatedFormat('d F Y, H:i') }} WIB. Anda akan memperoleh akses selama 30 hari setelah pembayaran disetujui.</p>
+                    <div class="mt-3 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-amber-200 bg-white/70 px-3 py-2 text-xs text-amber-800">
+                        <span class="font-bold">Tujuan:</span>
+                        <span>{{ $status['pending_payment']->destination_type_label }} {{ $status['pending_payment']->destination_bank }}</span>
+                        <span class="font-mono font-bold">{{ $status['pending_payment']->destination_account_number }}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -78,14 +83,20 @@
                     <p class="mt-3 text-3xl font-black">Rp {{ number_format($status['price'], 0, ',', '.') }}</p>
                     <p class="mt-2 text-sm leading-6 text-blue-100/75">Akses menu Keuangan, Kegiatan & Info, serta Aspirasi & Partisipasi.</p>
                     <div class="mt-6 border-t border-white/10 pt-5">
-                        <p class="text-xs uppercase tracking-wide text-blue-200/70">Transfer ke</p>
-                        <p class="mt-2 text-lg font-extrabold">{{ $status['bank'] }}</p>
-                        <p class="mt-1 font-mono text-xl tracking-wider text-white">{{ $status['account_number'] }}</p>
-                        <p class="mt-1 text-sm text-blue-100/80">a.n. {{ $status['account_name'] }}</p>
+                        <p class="text-xs uppercase tracking-wide text-blue-200/70">Pilihan pembayaran</p>
+                        <div class="mt-2 flex items-center gap-3">
+                            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h2m4 0h4M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            </span>
+                            <div>
+                                <p class="text-lg font-extrabold">{{ count($status['payment_methods']) }} metode tersedia</p>
+                                <p class="text-xs text-blue-100/70">Pilih Bank atau E-Wallet di formulir</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-xs leading-5 text-blue-700">
-                    Pastikan nominal dan tujuan rekening sesuai. Bukti disimpan secara privat dan hanya dapat dilihat Administrator.
+                    Pastikan nominal dan tujuan pembayaran sesuai. Bukti disimpan secara privat dan hanya dapat dilihat Administrator.
                 </div>
             </aside>
 
@@ -96,15 +107,58 @@
                     <p class="mt-1 text-sm text-slate-500">Lengkapi data transfer dan unggah bukti yang jelas.</p>
                 </div>
 
+                <fieldset class="mb-6">
+                    <legend class="mb-3 text-sm font-bold text-slate-800">Pilih Tujuan Pembayaran</legend>
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        @foreach($status['payment_methods'] as $method)
+                            <div class="subscription-payment-choice">
+                                <input id="payment-method-{{ $loop->index }}" type="radio" name="payment_method_id" value="{{ $method['id'] }}" required class="peer sr-only"
+                                    {{ old('payment_method_id', $loop->first ? $method['id'] : '') === $method['id'] ? 'checked' : '' }}>
+                                <label for="payment-method-{{ $loop->index }}" class="subscription-payment-card relative block h-full cursor-pointer rounded-2xl border-2 border-slate-200 bg-white p-4 transition hover:border-blue-300 hover:shadow-sm peer-checked:border-blue-600 peer-checked:bg-blue-50/60 peer-checked:ring-2 peer-checked:ring-blue-100">
+                                    <span class="flex items-center justify-between gap-2">
+                                        <span class="rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider {{ $method['type'] === 'ewallet' ? 'bg-violet-100 text-violet-700' : 'bg-blue-100 text-blue-700' }}">
+                                            {{ $method['type'] === 'ewallet' ? 'E-Wallet' : 'Bank' }}
+                                        </span>
+                                        <span class="subscription-payment-check flex h-5 w-5 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-transparent transition">
+                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                        </span>
+                                    </span>
+                                    <span class="mt-3 block text-base font-extrabold text-slate-900">{{ $method['provider'] }}</span>
+                                    <span class="mt-1 block font-mono text-sm font-bold tracking-wide text-slate-700">{{ $method['account_number'] }}</span>
+                                    <span class="mt-1 block text-xs text-slate-500">a.n. {{ $method['account_name'] }}</span>
+                                    @if($method['qris_path'])
+                                        <span class="mt-4 grid gap-3 rounded-xl border border-violet-100 bg-white p-3 sm:grid-cols-[96px_1fr] sm:items-center">
+                                            <img src="{{ route('subscribe.payment.qris', ['paymentMethod' => $method['id']]) }}" alt="QRIS {{ $method['provider'] }}" class="mx-auto h-24 w-24 rounded-lg border border-slate-100 bg-white object-contain p-1 shadow-sm">
+                                            <span class="text-center sm:text-left">
+                                                <span class="inline-flex rounded-full bg-violet-100 px-2 py-1 text-[9px] font-black uppercase tracking-wider text-violet-700">QRIS tersedia</span>
+                                                <span class="mt-1.5 block text-xs font-bold text-slate-700">Scan untuk membayar lebih cepat</span>
+                                                <span class="mt-1 block text-[10px] leading-4 text-slate-400">Pastikan nama tujuan sesuai sebelum melanjutkan pembayaran.</span>
+                                            </span>
+                                        </span>
+                                    @endif
+                                </label>
+                                @if($method['qris_path'])
+                                    <button type="button" data-qris-open data-qris-src="{{ route('subscribe.payment.qris', ['paymentMethod' => $method['id']]) }}" data-qris-provider="{{ $method['provider'] }}"
+                                        class="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet-50 px-3 py-2 text-xs font-bold text-violet-700 transition hover:bg-violet-100">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4m8 0h4v4m0 8v4h-4M8 20H4v-4M8 8h8v8H8V8z"/></svg>
+                                        Perbesar QRIS
+                                    </button>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                    @error('payment_method_id') <p class="mt-2 text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
+                </fieldset>
+
                 <div class="grid gap-5 sm:grid-cols-2">
                     <div>
-                        <label for="sender_bank" class="mb-2 block text-sm font-semibold text-slate-700">Bank Pengirim</label>
-                        <input id="sender_bank" name="sender_bank" type="text" maxlength="100" required value="{{ old('sender_bank') }}" placeholder="Contoh: BRI"
+                        <label for="sender_bank" class="mb-2 block text-sm font-semibold text-slate-700">Bank / E-Wallet Pengirim</label>
+                        <input id="sender_bank" name="sender_bank" type="text" maxlength="100" required value="{{ old('sender_bank') }}" placeholder="Contoh: BRI atau DANA"
                             class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                     </div>
                     <div>
-                        <label for="sender_account_name" class="mb-2 block text-sm font-semibold text-slate-700">Nama Pemilik Rekening</label>
-                        <input id="sender_account_name" name="sender_account_name" type="text" maxlength="150" required value="{{ old('sender_account_name') }}" placeholder="Nama rekening pengirim"
+                        <label for="sender_account_name" class="mb-2 block text-sm font-semibold text-slate-700">Nama Pemilik Akun Pengirim</label>
+                        <input id="sender_account_name" name="sender_account_name" type="text" maxlength="150" required value="{{ old('sender_account_name') }}" placeholder="Nama rekening atau akun pengirim"
                             class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                     </div>
                     <div class="sm:col-span-2">
@@ -165,9 +219,9 @@
             <h2 class="font-bold text-slate-800">Riwayat Pembayaran</h2>
         </div>
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[680px] text-left text-sm">
+            <table class="w-full min-w-[820px] text-left text-sm">
                 <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                    <tr><th class="px-5 py-3">Dikirim</th><th class="px-5 py-3">Nominal</th><th class="px-5 py-3">Status</th><th class="px-5 py-3">Masa Aktif</th></tr>
+                    <tr><th class="px-5 py-3">Dikirim</th><th class="px-5 py-3">Nominal</th><th class="px-5 py-3">Tujuan</th><th class="px-5 py-3">Status</th><th class="px-5 py-3">Masa Aktif</th></tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($payments as $payment)
@@ -175,18 +229,55 @@
                             <td class="px-5 py-4 text-slate-600">{{ $payment->created_at->translatedFormat('d M Y, H:i') }}</td>
                             <td class="px-5 py-4 font-semibold text-slate-800">Rp {{ number_format($payment->amount, 0, ',', '.') }}</td>
                             <td class="px-5 py-4">
+                                <p class="text-xs font-bold text-slate-700">{{ $payment->destination_type_label }} {{ $payment->destination_bank }}</p>
+                                <p class="mt-0.5 font-mono text-xs text-slate-500">{{ $payment->destination_account_number }}</p>
+                            </td>
+                            <td class="px-5 py-4">
                                 <span class="rounded-full px-2.5 py-1 text-xs font-bold {{ $payment->status === 'approved' ? 'bg-emerald-100 text-emerald-700' : ($payment->status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700') }}">{{ $payment->status_label }}</span>
                             </td>
                             <td class="px-5 py-4 text-slate-600">{{ $payment->ends_at ? $payment->starts_at->format('d/m/Y').' – '.$payment->ends_at->format('d/m/Y') : '—' }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="px-5 py-10 text-center text-slate-400">Belum ada riwayat pembayaran.</td></tr>
+                        <tr><td colspan="5" class="px-5 py-10 text-center text-slate-400">Belum ada riwayat pembayaran.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
     </section>
 </div>
+
+<div id="qris-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="qris-modal-title">
+    <button type="button" data-qris-close class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" aria-label="Tutup QRIS"></button>
+    <div class="relative z-10 w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-violet-600">Scan Pembayaran</p>
+                <h2 id="qris-modal-title" class="mt-1 text-lg font-extrabold text-slate-900">QRIS</h2>
+            </div>
+            <button type="button" data-qris-close class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200" aria-label="Tutup">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="bg-gradient-to-br from-violet-50 via-white to-blue-50 p-6">
+            <div class="mx-auto aspect-square max-w-xs overflow-hidden rounded-3xl border border-white bg-white p-3 shadow-xl shadow-violet-200/50">
+                <img id="qris-modal-image" src="" alt="QRIS pembayaran subscribe" class="h-full w-full object-contain">
+            </div>
+            <p class="mt-4 text-center text-xs leading-5 text-slate-500">Periksa kembali nama dan nominal tujuan pada aplikasi pembayaran sebelum menyelesaikan transaksi.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .subscription-payment-choice > input:focus-visible + .subscription-payment-card {
+        outline: 2px solid #2563eb;
+        outline-offset: 2px;
+    }
+    .subscription-payment-choice > input:checked + .subscription-payment-card .subscription-payment-check {
+        border-color: #2563eb;
+        background: #2563eb;
+        color: #fff;
+    }
+</style>
 @endsection
 
 @push('scripts')
@@ -297,6 +388,41 @@
         });
 
         window.addEventListener('beforeunload', revokePreviewUrl);
+    })();
+
+    (() => {
+        const modal = document.getElementById('qris-modal');
+        const image = document.getElementById('qris-modal-image');
+        const title = document.getElementById('qris-modal-title');
+        if (! modal || ! image || ! title) return;
+
+        const closeModal = () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            modal.setAttribute('aria-hidden', 'true');
+            image.removeAttribute('src');
+            document.body.classList.remove('overflow-hidden');
+        };
+
+        document.querySelectorAll('[data-qris-open]').forEach((button) => {
+            button.addEventListener('click', () => {
+                image.src = button.dataset.qrisSrc;
+                title.textContent = `QRIS ${button.dataset.qrisProvider}`;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('overflow-hidden');
+                modal.querySelector('[data-qris-close]')?.focus();
+            });
+        });
+
+        modal.querySelectorAll('[data-qris-close]').forEach((button) => {
+            button.addEventListener('click', closeModal);
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && ! modal.classList.contains('hidden')) closeModal();
+        });
     })();
 </script>
 @endpush

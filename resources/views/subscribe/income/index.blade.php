@@ -147,13 +147,19 @@
         </section>
 
         <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div><h2 class="font-bold text-slate-900">Rekening Tujuan</h2><p class="mt-0.5 text-xs text-slate-500">Distribusi pemasukan pada periode ini</p></div>
+            <div><h2 class="font-bold text-slate-900">Tujuan Pembayaran</h2><p class="mt-0.5 text-xs text-slate-500">Distribusi pemasukan per Bank dan E-Wallet</p></div>
             <div class="mt-5 space-y-4">
                 @forelse($bankBreakdown as $bank)
                     @php $percentage = $summary['total'] > 0 ? round(($bank->total / $summary['total']) * 100) : 0; @endphp
                     <div>
                         <div class="mb-2 flex items-start justify-between gap-3">
-                            <div><p class="text-sm font-bold text-slate-800">{{ $bank->destination_bank }}</p><p class="text-xs text-slate-400">{{ $bank->transaction_count }} transaksi</p></div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <p class="text-sm font-bold text-slate-800">{{ $bank->destination_bank }}</p>
+                                    <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase text-slate-500">{{ $bank->destination_type === 'ewallet' ? 'E-Wallet' : 'Bank' }}</span>
+                                </div>
+                                <p class="text-xs text-slate-400">{{ $bank->transaction_count }} transaksi</p>
+                            </div>
                             <p class="text-right text-sm font-black text-slate-900">Rp {{ number_format($bank->total, 0, ',', '.') }}</p>
                         </div>
                         <div class="h-2 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400" style="width: {{ $percentage }}%"></div></div>

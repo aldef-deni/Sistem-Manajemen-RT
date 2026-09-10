@@ -4,15 +4,39 @@ namespace App\Http\Controllers;
 
 use App\Models\SubscribePayment;
 use App\Support\SubscriptionAccess;
+use App\Support\SubscriptionPaymentMethods;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 class SubscribePaymentController extends Controller
 {
+    public function qris(string $paymentMethod, SubscriptionPaymentMethods $paymentMethods): StreamedResponse
+    {
+        $method = collect($paymentMethods->all())->firstWhere('id', $paymentMethod);
+        $qrisPath = $method['qris_path'] ?? null;
+
+        abort_unless(
+            is_string($qrisPath)
+                && str_starts_with($qrisPath, 'subscribe-qris/')
+                && Storage::disk('local')->exists($qrisPath),
+            404
+        );
+
+        $extension = pathinfo($qrisPath, PATHINFO_EXTENSION);
+
+        return Storage::disk('local')->response(
+            $qrisPath,
+            'qris-subscribe-'.$paymentMethod.'.'.$extension,
+            ['Content-Disposition' => 'inline']
+        );
+    }
+
     public function index(Request $request, SubscriptionAccess $subscription): View|RedirectResponse
     {
         $user = $request->user();
@@ -49,21 +73,25 @@ class SubscribePaymentController extends Controller
 
         abort_if(
             $status['price'] < 1
-                || $status['bank'] === ''
-                || $status['account_number'] === ''
-                || $status['account_name'] === '',
+                || $status['payment_methods'] === [],
             422,
             'Konfigurasi pembayaran subscribe belum lengkap.'
         );
 
+        if (count($status['payment_methods']) === 1 && ! $request->filled('payment_method_id')) {
+            $request->merge(['payment_method_id' => $status['payment_methods'][0]['id']]);
+        }
+
         $validated = $request->validate([
+            'payment_method_id' => ['required', 'string', 'max:40'],
             'sender_bank' => ['required', 'string', 'max:100'],
             'sender_account_name' => ['required', 'string', 'max:150'],
             'paid_at' => ['required', 'date', 'before_or_equal:today'],
             'proof' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ], [
-            'sender_bank.required' => 'Bank pengirim wajib diisi.',
+            'payment_method_id.required' => 'Pilih Bank atau E-Wallet tujuan pembayaran.',
+            'sender_bank.required' => 'Bank atau E-Wallet pengirim wajib diisi.',
             'sender_account_name.required' => 'Nama pemilik rekening pengirim wajib diisi.',
             'paid_at.required' => 'Tanggal pembayaran wajib diisi.',
             'paid_at.before_or_equal' => 'Tanggal pembayaran tidak boleh melebihi hari ini.',
@@ -71,6 +99,15 @@ class SubscribePaymentController extends Controller
             'proof.mimes' => 'Bukti pembayaran harus berupa JPG, PNG, WEBP, atau PDF.',
             'proof.max' => 'Ukuran bukti pembayaran maksimal 5 MB.',
         ]);
+
+        $destination = collect($status['payment_methods'])
+            ->firstWhere('id', $validated['payment_method_id']);
+
+        if (! $destination) {
+            throw ValidationException::withMessages([
+                'payment_method_id' => 'Tujuan pembayaran tidak tersedia atau telah berubah. Silakan pilih kembali.',
+            ]);
+        }
 
         $file = $request->file('proof');
         $extension = strtolower((string) $file->guessExtension());
@@ -81,7 +118,7 @@ class SubscribePaymentController extends Controller
         abort_unless($proofPath, 500, 'Bukti pembayaran gagal disimpan.');
 
         try {
-            DB::transaction(function () use ($user, $status, $validated, $proofPath): void {
+            DB::transaction(function () use ($user, $status, $destination, $validated, $proofPath): void {
                 abort_if(
                     SubscribePayment::query()
                         ->where('user_id', $user->id)
@@ -95,9 +132,10 @@ class SubscribePaymentController extends Controller
                 SubscribePayment::create([
                     'user_id' => $user->id,
                     'amount' => $status['price'],
-                    'destination_bank' => $status['bank'],
-                    'destination_account_number' => $status['account_number'],
-                    'destination_account_name' => $status['account_name'],
+                    'destination_type' => $destination['type'],
+                    'destination_bank' => $destination['provider'],
+                    'destination_account_number' => $destination['account_number'],
+                    'destination_account_name' => $destination['account_name'],
                     'sender_bank' => $validated['sender_bank'],
                     'sender_account_name' => $validated['sender_account_name'],
                     'paid_at' => $validated['paid_at'],

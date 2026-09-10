@@ -51,8 +51,8 @@ class SubscribeIncomeController extends Controller
             ->withQueryString();
 
         $bankBreakdown = (clone $query)
-            ->selectRaw('destination_bank, COUNT(*) as transaction_count, SUM(amount) as total')
-            ->groupBy('destination_bank')
+            ->selectRaw('destination_type, destination_bank, COUNT(*) as transaction_count, SUM(amount) as total')
+            ->groupBy('destination_type', 'destination_bank')
             ->orderByDesc('total')
             ->get();
 

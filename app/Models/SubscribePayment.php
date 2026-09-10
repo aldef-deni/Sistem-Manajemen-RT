@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\SubscriptionPaymentMethods;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -16,6 +17,7 @@ class SubscribePayment extends Model
     protected $fillable = [
         'user_id',
         'amount',
+        'destination_type',
         'destination_bank',
         'destination_account_number',
         'destination_account_name',
@@ -61,5 +63,17 @@ class SubscribePayment extends Model
             self::STATUS_REJECTED => 'Ditolak',
             default => 'Menunggu Verifikasi',
         };
+    }
+
+    public function getDestinationTypeLabelAttribute(): string
+    {
+        return SubscriptionPaymentMethods::typeLabel((string) ($this->destination_type ?: SubscriptionPaymentMethods::TYPE_BANK));
+    }
+
+    public function getDestinationNumberLabelAttribute(): string
+    {
+        return $this->destination_type === SubscriptionPaymentMethods::TYPE_EWALLET
+            ? 'Nomor E-Wallet'
+            : 'Nomor Rekening';
     }
 }

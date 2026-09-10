@@ -74,6 +74,9 @@ Route::middleware(['auth', 'subscription.access'])->group(function () {
     // Pembayaran subscribe pengguna (selalu dapat diakses saat menu lain terkunci).
     Route::get('subscribe/pembayaran', [SubscribePaymentController::class, 'index'])->name('subscribe.payment.index');
     Route::post('subscribe/pembayaran', [SubscribePaymentController::class, 'store'])->name('subscribe.payment.store');
+    Route::get('subscribe/qris/{paymentMethod}', [SubscribePaymentController::class, 'qris'])
+        ->where('paymentMethod', 'pm_[a-f0-9]{24}')
+        ->name('subscribe.payment.qris');
 
     // Profil sendiri
     Route::get('profil-saya', [ProfilController::class, 'index'])->name('profil-saya');
