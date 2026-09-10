@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\SafeUpload;
-
 use App\Models\Pengaduan;
 use App\Models\PengaduanBalasan;
+use App\Models\User;
+use App\Notifications\SystemNotification;
+use App\Support\SafeUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 
 class PengaduanController extends Controller
 {
@@ -19,8 +22,8 @@ class PengaduanController extends Controller
             $s = $request->search;
             $query->where(function ($q) use ($s) {
                 $q->where('kode_tiket', 'like', "%{$s}%")
-                  ->orWhere('judul', 'like', "%{$s}%")
-                  ->orWhere('kategori', 'like', "%{$s}%");
+                    ->orWhere('judul', 'like', "%{$s}%")
+                    ->orWhere('kategori', 'like', "%{$s}%");
             });
         }
 
@@ -64,9 +67,25 @@ class PengaduanController extends Controller
             );
         }
 
-        Pengaduan::create($validated);
+        $pengaduan = Pengaduan::create($validated);
 
-        return redirect()->route('pengaduan.index')->with('success', 'Pengaduan berhasil dikirim! Kode tiket: ' . $validated['kode_tiket']);
+        Notification::send(
+            User::query()
+                ->whereIn('role', ['admin', 'ketua', 'pengurus'])
+                ->where('id', '!=', Auth::id())
+                ->get(),
+            new SystemNotification(
+                category: 'complaint',
+                title: 'Pengaduan warga baru',
+                message: Auth::user()->name.' mengirim pengaduan: '.$pengaduan->judul,
+                routeName: 'pengaduan.show',
+                routeParams: ['pengaduan' => $pengaduan->id],
+                tone: 'amber',
+                context: ['pengaduan_id' => $pengaduan->id],
+            )
+        );
+
+        return redirect()->route('pengaduan.index')->with('success', 'Pengaduan berhasil dikirim! Kode tiket: '.$validated['kode_tiket']);
     }
 
     public function show(Pengaduan $pengaduan)
@@ -83,6 +102,18 @@ class PengaduanController extends Controller
         ]);
 
         $pengaduan->update($validated);
+
+        if ($pengaduan->user_id !== Auth::id()) {
+            $pengaduan->user?->notify(new SystemNotification(
+                category: 'complaint',
+                title: 'Status pengaduan diperbarui',
+                message: 'Pengaduan '.$pengaduan->kode_tiket.' kini berstatus '.ucfirst($pengaduan->status).'.',
+                routeName: 'pengaduan.show',
+                routeParams: ['pengaduan' => $pengaduan->id],
+                tone: $pengaduan->status === 'selesai' ? 'emerald' : ($pengaduan->status === 'ditolak' ? 'rose' : 'blue'),
+                context: ['pengaduan_id' => $pengaduan->id],
+            ));
+        }
 
         return redirect()->route('pengaduan.show', $pengaduan)->with('success', 'Status pengaduan berhasil diupdate!');
     }
@@ -105,12 +136,25 @@ class PengaduanController extends Controller
             'tanggal_balas' => now(),
         ]);
 
+        if ($pengaduan->user_id !== Auth::id()) {
+            $pengaduan->user?->notify(new SystemNotification(
+                category: 'complaint',
+                title: 'Balasan baru untuk pengaduan',
+                message: Str::limit($validated['pesan'], 140),
+                routeName: 'pengaduan.show',
+                routeParams: ['pengaduan' => $pengaduan->id],
+                tone: 'blue',
+                context: ['pengaduan_id' => $pengaduan->id],
+            ));
+        }
+
         return redirect()->route('pengaduan.show', $pengaduan)->with('success', 'Balasan berhasil dikirim!');
     }
 
     public function destroy(Pengaduan $pengaduan)
     {
         $pengaduan->delete();
+
         return redirect()->route('pengaduan.index')->with('success', 'Pengaduan berhasil dihapus!');
     }
 
@@ -118,6 +162,7 @@ class PengaduanController extends Controller
     {
         $date = now()->format('ymd');
         $last = Pengaduan::where('kode_tiket', 'like', "TKT{$date}%")->count() + 1;
-        return 'TKT' . $date . str_pad($last, 4, '0', STR_PAD_LEFT);
+
+        return 'TKT'.$date.str_pad($last, 4, '0', STR_PAD_LEFT);
     }
 }

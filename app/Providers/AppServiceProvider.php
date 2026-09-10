@@ -29,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
             $subscriptionStatus = null;
             $subscriptionPendingCount = 0;
             $chatUnreadCount = 0;
+            $notificationItems = collect();
+            $notificationUnreadCount = 0;
 
             if ($user && Schema::hasTable('setting_rt') && Schema::hasTable('subscribe_payments')) {
                 $subscriptionStatus = app(SubscriptionAccess::class)->status($user);
@@ -49,7 +51,18 @@ class AppServiceProvider extends ServiceProvider
                 $chatUnreadCount = ChatMessage::unreadCountFor($user);
             }
 
-            $view->with(compact('subscriptionStatus', 'subscriptionPendingCount', 'chatUnreadCount'));
+            if ($user && Schema::hasTable('notifications')) {
+                $notificationItems = $user->notifications()->latest()->limit(5)->get();
+                $notificationUnreadCount = $user->unreadNotifications()->count();
+            }
+
+            $view->with(compact(
+                'subscriptionStatus',
+                'subscriptionPendingCount',
+                'chatUnreadCount',
+                'notificationItems',
+                'notificationUnreadCount',
+            ));
         });
     }
 }

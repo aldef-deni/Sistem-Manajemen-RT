@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\AnggotaKeluarga;
 use App\Models\IuranWarga;
 use App\Models\JenisIuran;
+use App\Models\User;
+use App\Notifications\SystemNotification;
 use Illuminate\Http\Request;
 
 class IuranWargaController extends Controller
@@ -33,7 +35,7 @@ class IuranWargaController extends Controller
             $search = $request->search;
             $query->whereHas('anggota', function ($q) use ($search) {
                 $q->where('nama_lengkap', 'like', "%{$search}%")
-                  ->orWhere('nik', 'like', "%{$search}%");
+                    ->orWhere('nik', 'like', "%{$search}%");
             });
         }
 
@@ -87,7 +89,7 @@ class IuranWargaController extends Controller
             return back()->withErrors(['anggota_keluarga_id' => 'Tagihan iuran untuk warga ini pada periode tersebut sudah ada.'])->withInput();
         }
 
-        IuranWarga::create([
+        $iuran = IuranWarga::create([
             'anggota_keluarga_id' => $request->anggota_keluarga_id,
             'jenis_iuran_id' => $request->jenis_iuran_id,
             'bulan' => $request->bulan,
@@ -96,6 +98,12 @@ class IuranWargaController extends Controller
             'status' => 'belum_bayar',
             'catatan' => $request->catatan,
         ]);
+        $this->notifyResident(
+            $iuran,
+            'Tagihan iuran baru',
+            'Tagihan '.$iuran->jenisIuran?->nama.' periode '.$iuran->periode.' sebesar '.$iuran->nominal_formatted.' telah dibuat.',
+            'amber'
+        );
 
         return redirect()->route('iuran-warga.index')->with('success', 'Tagihan iuran berhasil dibuat!');
     }
@@ -137,6 +145,12 @@ class IuranWargaController extends Controller
             'status' => 'lunas',
             'tanggal_bayar' => now(),
         ]);
+        $this->notifyResident(
+            $iuran_warga,
+            'Pembayaran iuran dikonfirmasi',
+            'Pembayaran '.$iuran_warga->jenisIuran?->nama.' periode '.$iuran_warga->periode.' telah dinyatakan lunas.',
+            'emerald'
+        );
 
         return redirect()->route('iuran-warga.index')->with('success', 'Pembayaran berhasil dikonfirmasi!');
     }
@@ -148,11 +162,39 @@ class IuranWargaController extends Controller
             'ids.*' => 'exists:iuran_warga,id',
         ]);
 
+        $iuranItems = IuranWarga::query()->whereIn('id', $request->ids)->get();
+
         IuranWarga::whereIn('id', $request->ids)->update([
             'status' => 'lunas',
             'tanggal_bayar' => now(),
         ]);
 
-        return redirect()->route('iuran-warga.index')->with('success', count($request->ids) . ' pembayaran berhasil dikonfirmasi!');
+        foreach ($iuranItems as $iuran) {
+            $this->notifyResident(
+                $iuran,
+                'Pembayaran iuran dikonfirmasi',
+                'Pembayaran '.$iuran->jenisIuran?->nama.' periode '.$iuran->periode.' telah dinyatakan lunas.',
+                'emerald'
+            );
+        }
+
+        return redirect()->route('iuran-warga.index')->with('success', count($request->ids).' pembayaran berhasil dikonfirmasi!');
+    }
+
+    private function notifyResident(IuranWarga $iuran, string $title, string $message, string $tone): void
+    {
+        $recipient = User::query()
+            ->where('role', 'warga')
+            ->where('anggota_keluarga_id', $iuran->anggota_keluarga_id)
+            ->first();
+
+        $recipient?->notify(new SystemNotification(
+            category: 'payment',
+            title: $title,
+            message: $message,
+            routeName: 'pembayaran',
+            tone: $tone,
+            context: ['iuran_id' => $iuran->id],
+        ));
     }
 }

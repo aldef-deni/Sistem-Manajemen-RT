@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\SubscribePayment;
+use App\Models\User;
+use App\Notifications\SystemNotification;
 use App\Support\SubscriptionAccess;
 use App\Support\SubscriptionPaymentMethods;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -121,7 +124,7 @@ class SubscribePaymentController extends Controller
         abort_unless($proofPath, 500, 'Bukti pembayaran gagal disimpan.');
 
         try {
-            DB::transaction(function () use ($user, $status, $destination, $validated, $proofPath): void {
+            $payment = DB::transaction(function () use ($user, $status, $destination, $validated, $proofPath): SubscribePayment {
                 abort_if(
                     SubscribePayment::query()
                         ->where('user_id', $user->id)
@@ -132,7 +135,7 @@ class SubscribePaymentController extends Controller
                     'Pembayaran Anda sedang menunggu verifikasi Administrator.'
                 );
 
-                SubscribePayment::create([
+                return SubscribePayment::create([
                     'user_id' => $user->id,
                     'amount' => $status['price'],
                     'destination_type' => $destination['type'],
@@ -152,6 +155,19 @@ class SubscribePaymentController extends Controller
             Storage::disk('local')->delete($proofPath);
             throw $exception;
         }
+
+        Notification::send(
+            User::query()->where('role', 'admin')->get(),
+            new SystemNotification(
+                category: 'subscribe',
+                title: 'Pembayaran subscribe baru',
+                message: $user->name.' mengirim bukti pembayaran dan menunggu verifikasi.',
+                routeName: 'subscribe.verifications.index',
+                routeParams: ['status' => 'pending'],
+                tone: 'amber',
+                context: ['payment_id' => $payment->id],
+            )
+        );
 
         return redirect()
             ->route('subscribe.payment.index')

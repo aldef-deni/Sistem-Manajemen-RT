@@ -6,11 +6,14 @@ use App\Models\ChatConversation;
 use App\Models\ChatMessage;
 use App\Models\ChatParticipant;
 use App\Models\User;
+use App\Notifications\SystemNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -238,6 +241,25 @@ class ChatController extends Controller
             return $message->load('user');
         });
 
+        $recipients = $conversation->users()
+            ->where('users.id', '!=', $request->user()->id)
+            ->whereIn('users.role', self::CHAT_ROLES)
+            ->get();
+
+        Notification::send($recipients, new SystemNotification(
+            category: 'chat',
+            title: $conversation->isGroup()
+                ? 'Pesan baru di '.$conversation->displayName($request->user())
+                : 'Pesan baru dari '.$request->user()->name,
+            message: $conversation->isGroup()
+                ? $request->user()->name.': '.Str::limit($body, 120)
+                : Str::limit($body, 120),
+            routeName: 'chat.show',
+            routeParams: ['conversation' => $conversation->id],
+            tone: $conversation->isGroup() ? 'violet' : 'blue',
+            context: ['conversation_id' => $conversation->id],
+        ));
+
         if (! $request->expectsJson()) {
             return redirect()->route('chat.show', $conversation);
         }
@@ -265,6 +287,7 @@ class ChatController extends Controller
         if ($lastMessageId && $lastMessageId > ($participant->last_read_message_id ?? 0)) {
             $participant->update(['last_read_message_id' => $lastMessageId]);
         }
+        $this->markChatNotificationsAsRead($request->user(), $conversation);
 
         return response()->json([
             'messages' => $messages
@@ -296,6 +319,7 @@ class ChatController extends Controller
                 $activeParticipant?->update(['last_read_message_id' => $lastMessageId]);
                 $activeParticipant?->setAttribute('last_read_message_id', $lastMessageId);
             }
+            $this->markChatNotificationsAsRead($user, $activeConversation);
         }
 
         $conversations = $this->conversationList($user);
@@ -366,6 +390,14 @@ class ChatController extends Controller
         abort_unless($participant->role === 'owner', 403, 'Hanya pembuat grup yang dapat mengelola anggota.');
 
         return $participant;
+    }
+
+    private function markChatNotificationsAsRead(User $user, ChatConversation $conversation): void
+    {
+        $user->unreadNotifications()
+            ->where('data->category', 'chat')
+            ->where('data->conversation_id', $conversation->id)
+            ->update(['read_at' => now()]);
     }
 
     /** @return array<string, mixed> */

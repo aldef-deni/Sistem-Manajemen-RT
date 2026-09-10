@@ -14,6 +14,7 @@ use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\KartuKeluargaController;
 use App\Http\Controllers\KasRTController;
 use App\Http\Controllers\KegiatanRTController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotulenRapatController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PemilihPemiluController;
@@ -88,6 +89,11 @@ Route::middleware(['auth', 'subscription.access'])->group(function () {
     Route::post('profil-saya/foto', [ProfilController::class, 'updateFoto'])->name('profil.foto');
     Route::delete('profil-saya/foto', [ProfilController::class, 'hapusFoto'])->name('profil.foto.hapus');
     Route::put('profil-saya/password', [ProfilController::class, 'updatePassword'])->name('profil.password');
+
+    // Pusat notifikasi seluruh pengguna.
+    Route::get('notifikasi', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifikasi/baca-semua', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::get('notifikasi/{notification}/buka', [NotificationController::class, 'open'])->name('notifications.open');
 
     // Chat internal RT untuk Warga, Pengurus RT, dan Ketua RT.
     Route::middleware('role:ketua,pengurus,warga')->prefix('chat')->name('chat.')->group(function () {
