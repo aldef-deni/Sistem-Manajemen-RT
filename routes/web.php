@@ -24,6 +24,8 @@ use App\Http\Controllers\PinjamanController;
 use App\Http\Controllers\PollingController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\RencanaPembelianController;
+use App\Http\Controllers\ResidentFinancialReportController;
+use App\Http\Controllers\ResidentPaymentController;
 use App\Http\Controllers\StrukturRTController;
 use App\Http\Controllers\SubscribeController;
 use App\Http\Controllers\SubscribeIncomeController;
@@ -92,6 +94,12 @@ Route::middleware(['auth', 'subscription.access'])->group(function () {
     Route::get('pinjaman/ajukan', [PinjamanController::class, 'ajukan'])->name('pinjaman.ajukan');
     Route::post('pinjaman/ajukan', [PinjamanController::class, 'storeAjukan'])->name('pinjaman.store-ajukan');
     Route::get('pinjaman/get-jenis', [PinjamanController::class, 'getJenis'])->name('pinjaman.get-jenis');
+
+    // Keuangan pribadi warga. Seluruh data dibatasi dari akun yang sedang masuk.
+    Route::middleware('role:warga')->group(function () {
+        Route::get('pembayaran', [ResidentPaymentController::class, 'index'])->name('pembayaran');
+        Route::get('laporan-keuangan', [ResidentFinancialReportController::class, 'index'])->name('laporan-keuangan');
+    });
 
     /*
     |----------------------------------------------------------------------
@@ -325,8 +333,6 @@ Route::middleware(['auth', 'subscription.access'])->group(function () {
     | membacanya dari path permintaan — bukan dari parameter rute.
     */
     $pages = [
-        'pembayaran',
-        'laporan-keuangan',
         'layanan-warga',
         'layanan',
         'surat-menunggu',

@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AnggotaKeluarga;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class AkunController extends Controller
 {
@@ -18,20 +20,23 @@ class AkunController extends Controller
     public function index(Request $request)
     {
         $this->authorizeManageAkun();
-        $query = User::query();
+        $query = User::query()->with('anggotaKeluarga:id,nama_lengkap');
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('username', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('username', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhereHas('anggotaKeluarga', fn ($anggota) => $anggota
+                        ->where('nama_lengkap', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%"));
             });
         }
 
         $users = $query->latest()->paginate(10)->withQueryString();
 
-        $totalAkun    = User::count();
-        $totalKetua   = User::where('role', 'ketua')->count();
+        $totalAkun = User::count();
+        $totalKetua = User::where('role', 'ketua')->count();
         $totalPengurus = User::where('role', 'pengurus')->count();
 
         return view('akun.index', compact('users', 'totalAkun', 'totalKetua', 'totalPengurus'));
@@ -40,7 +45,10 @@ class AkunController extends Controller
     public function create()
     {
         $this->authorizeManageAkun();
-        return view('akun.create');
+
+        return view('akun.create', [
+            'anggotaKeluarga' => $this->anggotaKeluargaTersedia(),
+        ]);
     }
 
     public function store(Request $request)
@@ -49,21 +57,23 @@ class AkunController extends Controller
         $bolehKelolaPeran = auth()->user()->canManagePeran();
 
         $validated = $request->validate([
-            'name'     => 'required|string|max:100',
+            'name' => 'required|string|max:100',
             'username' => 'required|string|max:50|unique:users,username',
-            'email'    => 'required|email|max:100|unique:users,email',
-            'no_hp'    => 'nullable|string|max:20',
-            'role'     => $bolehKelolaPeran ? 'required|in:ketua,pengurus,warga' : 'prohibited',
+            'email' => 'required|email|max:100|unique:users,email',
+            'no_hp' => 'nullable|string|max:20',
+            'anggota_keluarga_id' => ['nullable', 'exists:anggota_keluarga,id', 'unique:users,anggota_keluarga_id'],
+            'role' => $bolehKelolaPeran ? 'required|in:ketua,pengurus,warga' : 'prohibited',
             'password' => 'required|string|min:6|confirmed',
         ]);
 
         User::create([
-            'name'     => $validated['name'],
+            'name' => $validated['name'],
             'username' => $validated['username'],
-            'email'    => $validated['email'],
-            'no_hp'    => $validated['no_hp'] ?? null,
+            'email' => $validated['email'],
+            'no_hp' => $validated['no_hp'] ?? null,
+            'anggota_keluarga_id' => $validated['anggota_keluarga_id'] ?? null,
             // Akun yang dibuat Ketua RT selalu dimulai sebagai Warga.
-            'role'     => $bolehKelolaPeran ? $validated['role'] : 'warga',
+            'role' => $bolehKelolaPeran ? $validated['role'] : 'warga',
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -78,7 +88,10 @@ class AkunController extends Controller
             abort(403, 'Akun Administrator hanya dapat diubah oleh pemiliknya sendiri.');
         }
 
-        return view('akun.edit', compact('akun'));
+        return view('akun.edit', [
+            'akun' => $akun,
+            'anggotaKeluarga' => $this->anggotaKeluargaTersedia($akun),
+        ]);
     }
 
     public function update(Request $request, User $akun)
@@ -94,20 +107,28 @@ class AkunController extends Controller
         $bolehKelolaPeran = auth()->user()->canManagePeran() && $akun->role !== 'admin';
 
         $validated = $request->validate([
-            'name'     => 'required|string|max:100',
-            'username' => 'required|string|max:50|unique:users,username,' . $akun->id,
-            'email'    => 'required|email|max:100|unique:users,email,' . $akun->id,
-            'no_hp'    => 'nullable|string|max:20',
-            'role'     => $bolehKelolaPeran ? 'required|in:ketua,pengurus,warga' : 'prohibited',
+            'name' => 'required|string|max:100',
+            'username' => 'required|string|max:50|unique:users,username,'.$akun->id,
+            'email' => 'required|email|max:100|unique:users,email,'.$akun->id,
+            'no_hp' => 'nullable|string|max:20',
+            'anggota_keluarga_id' => [
+                'nullable',
+                'exists:anggota_keluarga,id',
+                Rule::unique('users', 'anggota_keluarga_id')->ignore($akun->id),
+            ],
+            'role' => $bolehKelolaPeran ? 'required|in:ketua,pengurus,warga' : 'prohibited',
             'password' => 'nullable|string|min:6|confirmed',
         ]);
 
         $akun->update([
-            'name'     => $validated['name'],
+            'name' => $validated['name'],
             'username' => $validated['username'],
-            'email'    => $validated['email'],
-            'no_hp'    => $validated['no_hp'] ?? null,
-            'role'     => $bolehKelolaPeran ? $validated['role'] : $akun->role,
+            'email' => $validated['email'],
+            'no_hp' => $validated['no_hp'] ?? null,
+            'anggota_keluarga_id' => array_key_exists('anggota_keluarga_id', $validated)
+                ? $validated['anggota_keluarga_id']
+                : $akun->anggota_keluarga_id,
+            'role' => $bolehKelolaPeran ? $validated['role'] : $akun->role,
         ]);
 
         if (! empty($validated['password'])) {
@@ -129,5 +150,19 @@ class AkunController extends Controller
         $akun->delete();
 
         return redirect()->route('akun.index')->with('success', 'Akun berhasil dihapus!');
+    }
+
+    private function anggotaKeluargaTersedia(?User $akun = null)
+    {
+        $dipakaiAkunLain = User::query()
+            ->whereNotNull('anggota_keluarga_id')
+            ->when($akun, fn ($query) => $query->whereKeyNot($akun->id))
+            ->pluck('anggota_keluarga_id');
+
+        return AnggotaKeluarga::query()
+            ->with('kartuKeluarga:id,no_kk')
+            ->whereNotIn('id', $dipakaiAkunLain)
+            ->orderBy('nama_lengkap')
+            ->get(['id', 'kartu_keluarga_id', 'nik', 'nama_lengkap']);
     }
 }

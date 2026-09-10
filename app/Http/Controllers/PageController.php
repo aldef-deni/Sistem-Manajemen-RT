@@ -14,8 +14,6 @@ class PageController extends Controller
         // Keuangan
         'iuran-warga'       => ['title' => 'Iuran Warga',       'section' => 'Keuangan'],
         'kas-rt'            => ['title' => 'Kas RT',            'section' => 'Keuangan'],
-        'pembayaran'        => ['title' => 'Pembayaran',        'section' => 'Keuangan'],
-        'laporan-keuangan'  => ['title' => 'Laporan Keuangan',  'section' => 'Keuangan'],
         'arisan-rt'         => ['title' => 'Arisan RT',         'section' => 'Keuangan'],
 
         // Inventaris

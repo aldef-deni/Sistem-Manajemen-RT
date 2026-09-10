@@ -178,7 +178,7 @@
                     <p class="text-2xl font-bold text-slate-800">{{ auth()->user()->role === 'admin' ? $subscriptionPendingCount : 0 }}</p>
                     <p class="text-xs text-slate-400">Transaksi menunggu konfirmasi</p>
                 </div>
-                <a href="{{ auth()->user()->role === 'admin' ? route('subscribe.verifications.index') : route('pembayaran') }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                <a href="{{ route(match (auth()->user()->role) { 'admin' => 'subscribe.verifications.index', 'warga' => 'pembayaran', default => 'iuran-warga.index' }) }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
                     Lihat Detail
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>

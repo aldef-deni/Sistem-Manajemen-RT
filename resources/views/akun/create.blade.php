@@ -62,6 +62,18 @@
                         <input type="text" name="no_hp" value="{{ old('no_hp') }}" maxlength="20" placeholder="08xxxxxx"
                                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
                     </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Data Warga Terkait</label>
+                        <select name="anggota_keluarga_id" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                            <option value="">Belum ditautkan</option>
+                            @foreach ($anggotaKeluarga as $anggota)
+                                <option value="{{ $anggota->id }}" @selected((int) old('anggota_keluarga_id') === $anggota->id)>
+                                    {{ $anggota->nama_lengkap }} · NIK {{ $anggota->nik }} · KK {{ $anggota->kartuKeluarga?->no_kk ?? '-' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="text-[11px] text-slate-400 mt-1">Wajib ditautkan agar akun Warga dapat melihat iuran dan laporan keuangannya sendiri. Satu data warga hanya dapat dipakai oleh satu akun.</p>
+                    </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Role @if(auth()->user()->canManagePeran())<span class="text-red-500">*</span>@endif</label>
                         @if (auth()->user()->canManagePeran())
