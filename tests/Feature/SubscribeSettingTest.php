@@ -216,8 +216,13 @@ class SubscribeSettingTest extends TestCase
         $this->actingAs($this->sebagai('warga'))
             ->get(route('subscribe.payment.index'))
             ->assertOk()
-            ->assertSee('QRIS tersedia')
-            ->assertSee('Perbesar QRIS');
+            ->assertSee('Klik untuk unduh')
+            ->assertSee('Unduh QRIS BCA')
+            ->assertSee('data-qris-download', false);
+
+        $this->actingAs($this->sebagai('warga'))
+            ->get(route('subscribe.payment.qris.download', ['paymentMethod' => $method['id']]))
+            ->assertDownload('qris-subscribe-'.$method['id'].'.png');
 
         $this->actingAs($this->sebagai('admin'))
             ->put(route('subscribe.update'), [
