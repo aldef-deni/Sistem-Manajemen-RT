@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ChatMessage;
 use App\Models\IuranWarga;
 use App\Models\JadwalKegiatan;
 use App\Models\KegiatanRT;
@@ -110,6 +111,8 @@ class BerandaController extends Controller
 
         return response()->json([
             'sapaan'     => $this->sapaan(),
+            'notifikasi_belum_dibaca' => $user->unreadNotifications()->count(),
+            'chat_belum_dibaca' => $user->role === 'admin' ? 0 : ChatMessage::unreadCountFor($user),
             'ringkasan'  => $ringkasan,
             'pengumuman' => $pengumuman,
             'jadwal'     => $jadwal,

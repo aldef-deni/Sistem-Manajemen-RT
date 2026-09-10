@@ -68,12 +68,18 @@ class KelolaController extends Controller
         return response()->json([
             'data' => collect($data->items())->map(fn ($a) => [
                 'id'      => $a->id,
+                'kartu_keluarga_id' => $a->kartu_keluarga_id,
                 'nama'    => $a->nama_lengkap,
                 'nik'     => $a->nik,
                 'no_hp'   => $a->no_hp,
+                'jenis_kelamin' => $a->jenis_kelamin,
                 'kelamin' => $a->jenis_kelamin === 'L' ? 'Laki-laki' : ($a->jenis_kelamin === 'P' ? 'Perempuan' : '-'),
+                'tanggal_lahir' => optional($a->tanggal_lahir)->toDateString(),
+                'status_hubungan' => $a->status_hubungan,
                 'hubungan' => $a->status_hubungan,
+                'status_kawin' => $a->status_kawin,
                 'domisili' => $a->domisili,
+                'role_keluarga' => $a->role,
                 'no_kk'   => optional($a->kartuKeluarga)->no_kk,
                 'alamat'  => optional($a->kartuKeluarga)->alamat,
             ])->values(),
@@ -106,6 +112,7 @@ class KelolaController extends Controller
                 'jenis'      => $t->jenis,
                 'masuk'      => $t->jenis === 'masuk',
                 'kategori'   => $t->kategori,
+                'rekening_kas_id' => $t->rekening_kas_id,
                 'nominal'    => (float) $t->nominal,
                 'tanggal'    => optional($t->tanggal)->toDateString(),
                 'keterangan' => $t->keterangan,
@@ -137,11 +144,17 @@ class KelolaController extends Controller
             ],
             'data' => collect($data->items())->map(fn ($i) => [
                 'id'      => $i->id,
+                'anggota_keluarga_id' => $i->anggota_keluarga_id,
+                'jenis_iuran_id' => $i->jenis_iuran_id,
+                'bulan' => $i->bulan,
+                'tahun' => $i->tahun,
                 'warga'   => optional($i->anggota)->nama_lengkap ?? '-',
                 'jenis'   => optional($i->jenisIuran)->nama ?? 'Iuran',
                 'periode' => $this->namaBulan($i->bulan) . ' ' . $i->tahun,
                 'nominal' => (float) $i->nominal,
                 'status'  => $i->status,
+                'tanggal_bayar' => optional($i->tanggal_bayar)->toDateString(),
+                'catatan' => $i->catatan,
                 'lunas'   => $i->status === 'lunas',
             ])->values(),
             'halaman' => [
@@ -202,7 +215,7 @@ class KelolaController extends Controller
 
     public function akun(Request $request): JsonResponse
     {
-        $data = User::when($request->filled('cari'), function ($q) use ($request) {
+        $data = User::with('anggotaKeluarga')->when($request->filled('cari'), function ($q) use ($request) {
             $kata = $request->cari;
             $q->where(fn ($w) => $w->where('name', 'like', "%{$kata}%")->orWhere('username', 'like', "%{$kata}%"));
         })
@@ -218,6 +231,7 @@ class KelolaController extends Controller
                 'nama'     => $u->name,
                 'username' => $u->username,
                 'email'    => $u->email,
+                'no_hp'    => $u->no_hp,
                 'peran'    => $u->role,
                 'peran_label' => match ($u->role) {
                     'admin'    => 'Administrator',
@@ -225,6 +239,8 @@ class KelolaController extends Controller
                     'pengurus' => 'Pengurus RT',
                     default    => 'Warga',
                 },
+                'anggota_keluarga_id' => $u->anggota_keluarga_id,
+                'warga_nama' => $u->anggotaKeluarga?->nama_lengkap,
                 'tertaut' => (bool) $u->anggota_keluarga_id,
             ])->values(),
             'halaman' => [
@@ -241,8 +257,8 @@ class KelolaController extends Controller
             'peran' => 'required|in:ketua,pengurus,warga',
         ]);
 
-        // Peran Administrator hanya dikelola di luar aplikasi agar akun teknis
-        // tidak dapat diturunkan, termasuk oleh Administrator itu sendiri.
+        // Administrator dan Ketua RT dapat mengatur peran akun biasa. Akun
+        // Administrator tetap tidak dapat diturunkan dari aplikasi.
         if ($akun->role === 'admin') {
             return response()->json(['pesan' => 'Peran Administrator tidak dapat diubah dari aplikasi.'], 422);
         }
