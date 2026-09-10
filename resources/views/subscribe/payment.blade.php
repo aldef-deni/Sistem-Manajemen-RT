@@ -109,41 +109,43 @@
 
                 <fieldset class="mb-6">
                     <legend class="mb-3 text-sm font-bold text-slate-800">Pilih Tujuan Pembayaran</legend>
-                    <div class="grid gap-3 sm:grid-cols-2">
+                    <div class="space-y-3">
                         @foreach($status['payment_methods'] as $method)
                             <div class="subscription-payment-choice">
                                 <input id="payment-method-{{ $loop->index }}" type="radio" name="payment_method_id" value="{{ $method['id'] }}" required class="peer sr-only"
                                     {{ old('payment_method_id', $loop->first ? $method['id'] : '') === $method['id'] ? 'checked' : '' }}>
-                                <label for="payment-method-{{ $loop->index }}" class="subscription-payment-card relative block h-full cursor-pointer rounded-2xl border-2 border-slate-200 bg-white p-4 transition hover:border-blue-300 hover:shadow-sm peer-checked:border-blue-600 peer-checked:bg-blue-50/60 peer-checked:ring-2 peer-checked:ring-blue-100">
-                                    <span class="flex items-center justify-between gap-2">
-                                        <span class="rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider {{ $method['type'] === 'ewallet' ? 'bg-violet-100 text-violet-700' : 'bg-blue-100 text-blue-700' }}">
-                                            {{ $method['type'] === 'ewallet' ? 'E-Wallet' : 'Bank' }}
-                                        </span>
-                                        <span class="subscription-payment-check flex h-5 w-5 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-transparent transition">
-                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                                        </span>
-                                    </span>
-                                    <span class="mt-3 block text-base font-extrabold text-slate-900">{{ $method['provider'] }}</span>
-                                    <span class="mt-1 block font-mono text-sm font-bold tracking-wide text-slate-700">{{ $method['account_number'] }}</span>
-                                    <span class="mt-1 block text-xs text-slate-500">a.n. {{ $method['account_name'] }}</span>
-                                    @if($method['qris_path'])
-                                        <span class="mt-4 grid gap-3 rounded-xl border border-violet-100 bg-white p-3 sm:grid-cols-[96px_1fr] sm:items-center">
-                                            <img src="{{ route('subscribe.payment.qris', ['paymentMethod' => $method['id']]) }}" alt="QRIS {{ $method['provider'] }}" class="mx-auto h-24 w-24 rounded-lg border border-slate-100 bg-white object-contain p-1 shadow-sm">
-                                            <span class="text-center sm:text-left">
-                                                <span class="inline-flex rounded-full bg-violet-100 px-2 py-1 text-[9px] font-black uppercase tracking-wider text-violet-700">QRIS tersedia</span>
-                                                <span class="mt-1.5 block text-xs font-bold text-slate-700">Scan untuk membayar lebih cepat</span>
-                                                <span class="mt-1 block text-[10px] leading-4 text-slate-400">Pastikan nama tujuan sesuai sebelum melanjutkan pembayaran.</span>
+                                <div class="subscription-payment-card overflow-hidden rounded-2xl border-2 border-slate-200 bg-white transition hover:border-blue-300 hover:shadow-md peer-checked:border-blue-600 peer-checked:bg-blue-50/60 peer-checked:ring-2 peer-checked:ring-blue-100 sm:grid {{ $method['qris_path'] ? 'sm:grid-cols-[minmax(0,1fr)_230px]' : '' }}">
+                                    <label for="payment-method-{{ $loop->index }}" class="flex min-w-0 cursor-pointer flex-col justify-center p-5 sm:p-6">
+                                        <span class="flex items-center justify-between gap-3">
+                                            <span class="rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider {{ $method['type'] === 'ewallet' ? 'bg-violet-100 text-violet-700' : 'bg-blue-100 text-blue-700' }}">
+                                                {{ $method['type'] === 'ewallet' ? 'E-Wallet' : 'Bank' }}
+                                            </span>
+                                            <span class="subscription-payment-check flex h-7 w-7 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-transparent transition">
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                             </span>
                                         </span>
-                                    @endif
+                                        <span class="mt-4 block">
+                                            <span class="block text-xl font-black text-slate-900">{{ $method['provider'] }}</span>
+                                            <span class="mt-1.5 block font-mono text-base font-extrabold tracking-wide text-slate-700">{{ $method['account_number'] }}</span>
+                                            <span class="mt-1 block text-sm text-slate-500">a.n. {{ $method['account_name'] }}</span>
+                                        </span>
+                                        <span class="mt-5 inline-flex items-center gap-2 text-xs font-bold text-blue-600">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+                                            Klik area rekening untuk memilih
+                                        </span>
                                 </label>
                                 @if($method['qris_path'])
-                                    <button type="button" data-qris-open data-qris-src="{{ route('subscribe.payment.qris', ['paymentMethod' => $method['id']]) }}" data-qris-provider="{{ $method['provider'] }}"
-                                        class="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet-50 px-3 py-2 text-xs font-bold text-violet-700 transition hover:bg-violet-100">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4m8 0h4v4m0 8v4h-4M8 20H4v-4M8 8h8v8H8V8z"/></svg>
-                                        Perbesar QRIS
-                                    </button>
+                                    <a href="{{ route('subscribe.payment.qris.download', ['paymentMethod' => $method['id']]) }}" download data-qris-download
+                                        class="group flex flex-col items-center justify-center border-t border-violet-100 bg-gradient-to-br from-violet-50 via-white to-blue-50 p-4 transition hover:from-violet-100 hover:to-blue-100 sm:border-l sm:border-t-0">
+                                        <span class="mb-2 inline-flex items-center gap-1.5 rounded-full bg-violet-600 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-sm">
+                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4M5 20h14"/></svg>
+                                            Klik untuk unduh
+                                        </span>
+                                        <img src="{{ route('subscribe.payment.qris', ['paymentMethod' => $method['id']]) }}" alt="QRIS {{ $method['provider'] }}" class="h-52 w-52 rounded-2xl border border-white bg-white object-contain p-2 shadow-lg shadow-violet-200/60 transition group-hover:scale-[1.02] sm:h-44 sm:w-44">
+                                        <span class="mt-2 text-xs font-extrabold text-violet-700">Unduh QRIS {{ $method['provider'] }}</span>
+                                    </a>
                                 @endif
+                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -244,27 +246,6 @@
             </table>
         </div>
     </section>
-</div>
-
-<div id="qris-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="qris-modal-title">
-    <button type="button" data-qris-close class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" aria-label="Tutup QRIS"></button>
-    <div class="relative z-10 w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
-        <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-            <div>
-                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-violet-600">Scan Pembayaran</p>
-                <h2 id="qris-modal-title" class="mt-1 text-lg font-extrabold text-slate-900">QRIS</h2>
-            </div>
-            <button type="button" data-qris-close class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200" aria-label="Tutup">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <div class="bg-gradient-to-br from-violet-50 via-white to-blue-50 p-6">
-            <div class="mx-auto aspect-square max-w-xs overflow-hidden rounded-3xl border border-white bg-white p-3 shadow-xl shadow-violet-200/50">
-                <img id="qris-modal-image" src="" alt="QRIS pembayaran subscribe" class="h-full w-full object-contain">
-            </div>
-            <p class="mt-4 text-center text-xs leading-5 text-slate-500">Periksa kembali nama dan nominal tujuan pada aplikasi pembayaran sebelum menyelesaikan transaksi.</p>
-        </div>
-    </div>
 </div>
 
 <style>
@@ -390,39 +371,5 @@
         window.addEventListener('beforeunload', revokePreviewUrl);
     })();
 
-    (() => {
-        const modal = document.getElementById('qris-modal');
-        const image = document.getElementById('qris-modal-image');
-        const title = document.getElementById('qris-modal-title');
-        if (! modal || ! image || ! title) return;
-
-        const closeModal = () => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            modal.setAttribute('aria-hidden', 'true');
-            image.removeAttribute('src');
-            document.body.classList.remove('overflow-hidden');
-        };
-
-        document.querySelectorAll('[data-qris-open]').forEach((button) => {
-            button.addEventListener('click', () => {
-                image.src = button.dataset.qrisSrc;
-                title.textContent = `QRIS ${button.dataset.qrisProvider}`;
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                modal.setAttribute('aria-hidden', 'false');
-                document.body.classList.add('overflow-hidden');
-                modal.querySelector('[data-qris-close]')?.focus();
-            });
-        });
-
-        modal.querySelectorAll('[data-qris-close]').forEach((button) => {
-            button.addEventListener('click', closeModal);
-        });
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && ! modal.classList.contains('hidden')) closeModal();
-        });
-    })();
 </script>
 @endpush

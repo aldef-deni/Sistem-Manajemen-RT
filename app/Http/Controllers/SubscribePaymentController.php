@@ -18,15 +18,7 @@ class SubscribePaymentController extends Controller
 {
     public function qris(string $paymentMethod, SubscriptionPaymentMethods $paymentMethods): StreamedResponse
     {
-        $method = collect($paymentMethods->all())->firstWhere('id', $paymentMethod);
-        $qrisPath = $method['qris_path'] ?? null;
-
-        abort_unless(
-            is_string($qrisPath)
-                && str_starts_with($qrisPath, 'subscribe-qris/')
-                && Storage::disk('local')->exists($qrisPath),
-            404
-        );
+        $qrisPath = $this->qrisPath($paymentMethod, $paymentMethods);
 
         $extension = pathinfo($qrisPath, PATHINFO_EXTENSION);
 
@@ -34,6 +26,17 @@ class SubscribePaymentController extends Controller
             $qrisPath,
             'qris-subscribe-'.$paymentMethod.'.'.$extension,
             ['Content-Disposition' => 'inline']
+        );
+    }
+
+    public function downloadQris(string $paymentMethod, SubscriptionPaymentMethods $paymentMethods): StreamedResponse
+    {
+        $qrisPath = $this->qrisPath($paymentMethod, $paymentMethods);
+        $extension = pathinfo($qrisPath, PATHINFO_EXTENSION);
+
+        return Storage::disk('local')->download(
+            $qrisPath,
+            'qris-subscribe-'.$paymentMethod.'.'.$extension
         );
     }
 
@@ -153,5 +156,20 @@ class SubscribePaymentController extends Controller
         return redirect()
             ->route('subscribe.payment.index')
             ->with('success', 'Bukti pembayaran berhasil dikirim dan sedang menunggu verifikasi Administrator.');
+    }
+
+    private function qrisPath(string $paymentMethod, SubscriptionPaymentMethods $paymentMethods): string
+    {
+        $method = collect($paymentMethods->all())->firstWhere('id', $paymentMethod);
+        $qrisPath = $method['qris_path'] ?? null;
+
+        abort_unless(
+            is_string($qrisPath)
+                && str_starts_with($qrisPath, 'subscribe-qris/')
+                && Storage::disk('local')->exists($qrisPath),
+            404
+        );
+
+        return $qrisPath;
     }
 }

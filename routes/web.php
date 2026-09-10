@@ -77,6 +77,9 @@ Route::middleware(['auth', 'subscription.access'])->group(function () {
     Route::get('subscribe/qris/{paymentMethod}', [SubscribePaymentController::class, 'qris'])
         ->where('paymentMethod', 'pm_[a-f0-9]{24}')
         ->name('subscribe.payment.qris');
+    Route::get('subscribe/qris/{paymentMethod}/download', [SubscribePaymentController::class, 'downloadQris'])
+        ->where('paymentMethod', 'pm_[a-f0-9]{24}')
+        ->name('subscribe.payment.qris.download');
 
     // Profil sendiri
     Route::get('profil-saya', [ProfilController::class, 'index'])->name('profil-saya');
