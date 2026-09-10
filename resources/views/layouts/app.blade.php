@@ -56,8 +56,16 @@
                             <p class="text-sm font-medium text-slate-700">{{ auth()->user()->name ?? 'Administrator' }}</p>
                             <p class="text-xs text-slate-400">{{ auth()->user()->role_label }}</p>
                         </div>
-                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-semibold text-sm shadow-md shadow-blue-500/20">
-                            {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}
+                        @php($headerAvatarUrl = auth()->user()->foto_url)
+                        <div class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-blue-500 to-blue-700 text-sm font-semibold text-white shadow-md shadow-blue-500/20">
+                            @if($headerAvatarUrl)
+                                <img src="{{ $headerAvatarUrl }}?v={{ auth()->user()->updated_at?->timestamp }}"
+                                     alt="Foto profil {{ auth()->user()->name }}"
+                                     data-header-avatar
+                                     class="h-full w-full object-cover">
+                            @else
+                                {{ auth()->user()->initial }}
+                            @endif
                         </div>
                     </div>
                 </div>

@@ -69,7 +69,7 @@
                     <div style="position:relative;width:96px;height:96px;margin:0 auto">
                         <div style="width:96px;height:96px;border-radius:50%;border:4px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.12);overflow:hidden;background:linear-gradient(135deg,#14b8a6,#0f766e);display:flex;align-items:center;justify-content:center">
                             @if($user->foto_url)
-                                <img src="{{ $user->foto_url }}" alt="Foto Profil" style="width:100%;height:100%;object-fit:cover">
+                                <img src="{{ $user->foto_url }}?v={{ $user->updated_at?->timestamp }}" alt="Foto Profil" style="width:100%;height:100%;object-fit:cover">
                             @else
                                 <span style="color:#fff;font-size:32px;font-weight:800">{{ $user->initial }}</span>
                             @endif

@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Support\SafeUpload;
-
-use App\Models\AnggotaKeluarga;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -15,16 +13,8 @@ class ProfilController extends Controller
      */
     public function index()
     {
-        $user = auth()->user();
-
-        // Cek keterhubungan dengan data warga (berdasarkan nomor HP)
-        $warga = null;
-        if ($user->no_hp) {
-            $suffix = substr(preg_replace('/[^0-9]/', '', $user->no_hp), -9);
-            $warga = AnggotaKeluarga::whereNotNull('no_hp')
-                ->get()
-                ->first(fn ($a) => str_ends_with(preg_replace('/[^0-9]/', '', $a->no_hp), $suffix));
-        }
+        $user = auth()->user()->loadMissing('anggotaKeluarga.kartuKeluarga');
+        $warga = $user->anggotaKeluarga;
 
         return view('profil.index', compact('user', 'warga'));
     }
@@ -37,17 +27,17 @@ class ProfilController extends Controller
         $user = auth()->user();
 
         $validated = $request->validate([
-            'name'     => 'required|string|max:100',
-            'username' => 'required|string|max:50|unique:users,username,' . $user->id,
-            'email'    => 'required|email|max:100|unique:users,email,' . $user->id,
-            'no_hp'    => 'nullable|string|max:20',
+            'name' => 'required|string|max:100',
+            'username' => 'required|string|max:50|unique:users,username,'.$user->id,
+            'email' => 'required|email|max:100|unique:users,email,'.$user->id,
+            'no_hp' => 'nullable|string|max:20',
         ]);
 
         $user->update([
-            'name'     => $validated['name'],
+            'name' => $validated['name'],
             'username' => $validated['username'],
-            'email'    => $validated['email'],
-            'no_hp'    => $validated['no_hp'] ?? null,
+            'email' => $validated['email'],
+            'no_hp' => $validated['no_hp'] ?? null,
         ]);
 
         return back()->with('success', 'Profil berhasil diperbarui!');
@@ -68,7 +58,7 @@ class ProfilController extends Controller
         $path = SafeUpload::store(
             $request->file('foto'),
             'profil',
-            'foto_' . $user->id,
+            'foto_'.$user->id,
             SafeUpload::IMAGE
         );
 
@@ -109,7 +99,7 @@ class ProfilController extends Controller
 
         $user = auth()->user();
 
-        if (!Hash::check($request->password_lama, $user->password)) {
+        if (! Hash::check($request->password_lama, $user->password)) {
             return back()->withErrors(['password_lama' => 'Password lama salah.'])->withInput();
         }
 
