@@ -68,11 +68,11 @@
                             <option value="">Belum ditautkan</option>
                             @foreach ($anggotaKeluarga as $anggota)
                                 <option value="{{ $anggota->id }}" @selected((int) old('anggota_keluarga_id', $akun->anggota_keluarga_id) === $anggota->id)>
-                                    {{ $anggota->nama_lengkap }} · NIK {{ $anggota->nik }} · KK {{ $anggota->kartuKeluarga?->no_kk ?? '-' }}
+                                    {{ $anggota->nama_lengkap }} · {{ $anggota->status_hubungan }} · NIK {{ $anggota->nik }} · KK {{ $anggota->kartuKeluarga?->no_kk ?? '-' }}
                                 </option>
                             @endforeach
                         </select>
-                        <p class="text-[11px] text-slate-400 mt-1">Hubungan ini membatasi halaman Pembayaran dan Laporan Keuangan hanya ke data warga tersebut.</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Akun Warga hanya dapat ditautkan ke Kepala Keluarga. Ketua/Pengurus dapat ditautkan ke data dirinya. Hubungan ini menentukan data pribadi yang dibaca akun.</p>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Role @if(auth()->user()->canManagePeran() && $akun->role !== 'admin')<span class="text-red-500">*</span>@endif</label>

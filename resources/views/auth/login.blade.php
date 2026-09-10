@@ -153,6 +153,14 @@
                     </button>
                 </form>
 
+                <div class="mt-5 rounded-xl border border-blue-100 bg-blue-50/70 p-4 text-center">
+                    <p class="text-xs text-slate-500">Kepala Keluarga yang sudah terdaftar belum memiliki akun?</p>
+                    <a href="{{ route('register.resident.identity') }}" class="mt-2 inline-flex items-center gap-1.5 text-sm font-bold text-blue-700 hover:text-blue-800">
+                        Daftar akun Warga
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+
                 {{-- Footer --}}
                 <p class="text-center text-xs text-slate-400 mt-8">
                     Butuh bantuan? Hubungi pengurus RT Anda

@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class AnggotaKeluarga extends Model
 {
     protected $table = 'anggota_keluarga';
+
     protected $fillable = [
         'kartu_keluarga_id',
         'nik',
@@ -54,6 +56,16 @@ class AnggotaKeluarga extends Model
         return $query;
     }
 
+    public function scopeKepalaKeluarga(Builder $query): Builder
+    {
+        return $query->whereRaw('LOWER(TRIM(status_hubungan)) = ?', ['kepala keluarga']);
+    }
+
+    public function isKepalaKeluarga(): bool
+    {
+        return mb_strtolower(trim((string) $this->status_hubungan)) === 'kepala keluarga';
+    }
+
     public function kartuKeluarga(): BelongsTo
     {
         return $this->belongsTo(KartuKeluarga::class);
@@ -62,5 +74,10 @@ class AnggotaKeluarga extends Model
     public function tabungan()
     {
         return $this->hasOne(Tabungan::class);
+    }
+
+    public function akun(): HasOne
+    {
+        return $this->hasOne(User::class);
     }
 }

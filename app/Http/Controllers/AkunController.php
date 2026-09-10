@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class AkunController extends Controller
 {
@@ -38,8 +39,17 @@ class AkunController extends Controller
         $totalAkun = User::count();
         $totalKetua = User::where('role', 'ketua')->count();
         $totalPengurus = User::where('role', 'pengurus')->count();
+        $totalKepalaKeluarga = AnggotaKeluarga::kepalaKeluarga()->count();
+        $kepalaTanpaAkun = AnggotaKeluarga::kepalaKeluarga()->whereDoesntHave('akun')->count();
 
-        return view('akun.index', compact('users', 'totalAkun', 'totalKetua', 'totalPengurus'));
+        return view('akun.index', compact(
+            'users',
+            'totalAkun',
+            'totalKetua',
+            'totalPengurus',
+            'totalKepalaKeluarga',
+            'kepalaTanpaAkun',
+        ));
     }
 
     public function create()
@@ -47,7 +57,9 @@ class AkunController extends Controller
         $this->authorizeManageAkun();
 
         return view('akun.create', [
-            'anggotaKeluarga' => $this->anggotaKeluargaTersedia(),
+            'anggotaKeluarga' => $this->anggotaKeluargaTersedia(
+                role: auth()->user()->canManagePeran() ? null : 'warga',
+            ),
         ]);
     }
 
@@ -66,6 +78,9 @@ class AkunController extends Controller
             'password' => 'required|string|min:6|confirmed',
         ]);
 
+        $targetRole = $bolehKelolaPeran ? $validated['role'] : 'warga';
+        $this->pastikanTautanSesuaiPeran($validated['anggota_keluarga_id'] ?? null, $targetRole);
+
         User::create([
             'name' => $validated['name'],
             'username' => $validated['username'],
@@ -73,7 +88,7 @@ class AkunController extends Controller
             'no_hp' => $validated['no_hp'] ?? null,
             'anggota_keluarga_id' => $validated['anggota_keluarga_id'] ?? null,
             // Akun yang dibuat Ketua RT selalu dimulai sebagai Warga.
-            'role' => $bolehKelolaPeran ? $validated['role'] : 'warga',
+            'role' => $targetRole,
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -90,7 +105,10 @@ class AkunController extends Controller
 
         return view('akun.edit', [
             'akun' => $akun,
-            'anggotaKeluarga' => $this->anggotaKeluargaTersedia($akun),
+            'anggotaKeluarga' => $this->anggotaKeluargaTersedia(
+                $akun,
+                auth()->user()->canManagePeran() ? null : $akun->role,
+            ),
         ]);
     }
 
@@ -120,15 +138,19 @@ class AkunController extends Controller
             'password' => 'nullable|string|min:6|confirmed',
         ]);
 
+        $targetRole = $bolehKelolaPeran ? $validated['role'] : $akun->role;
+        $memberId = array_key_exists('anggota_keluarga_id', $validated)
+            ? $validated['anggota_keluarga_id']
+            : $akun->anggota_keluarga_id;
+        $this->pastikanTautanSesuaiPeran($memberId, $targetRole);
+
         $akun->update([
             'name' => $validated['name'],
             'username' => $validated['username'],
             'email' => $validated['email'],
             'no_hp' => $validated['no_hp'] ?? null,
-            'anggota_keluarga_id' => array_key_exists('anggota_keluarga_id', $validated)
-                ? $validated['anggota_keluarga_id']
-                : $akun->anggota_keluarga_id,
-            'role' => $bolehKelolaPeran ? $validated['role'] : $akun->role,
+            'anggota_keluarga_id' => $memberId,
+            'role' => $targetRole,
         ]);
 
         if (! empty($validated['password'])) {
@@ -152,7 +174,7 @@ class AkunController extends Controller
         return redirect()->route('akun.index')->with('success', 'Akun berhasil dihapus!');
     }
 
-    private function anggotaKeluargaTersedia(?User $akun = null)
+    private function anggotaKeluargaTersedia(?User $akun = null, ?string $role = null)
     {
         $dipakaiAkunLain = User::query()
             ->whereNotNull('anggota_keluarga_id')
@@ -162,7 +184,23 @@ class AkunController extends Controller
         return AnggotaKeluarga::query()
             ->with('kartuKeluarga:id,no_kk')
             ->whereNotIn('id', $dipakaiAkunLain)
+            ->when($role === 'warga', fn ($query) => $query->kepalaKeluarga())
             ->orderBy('nama_lengkap')
-            ->get(['id', 'kartu_keluarga_id', 'nik', 'nama_lengkap']);
+            ->get(['id', 'kartu_keluarga_id', 'nik', 'nama_lengkap', 'status_hubungan']);
+    }
+
+    private function pastikanTautanSesuaiPeran(mixed $memberId, string $role): void
+    {
+        if (! $memberId || $role !== 'warga') {
+            return;
+        }
+
+        $member = AnggotaKeluarga::find($memberId);
+
+        if (! $member?->isKepalaKeluarga()) {
+            throw ValidationException::withMessages([
+                'anggota_keluarga_id' => 'Akun dengan role Warga hanya dapat ditautkan ke data Kepala Keluarga.',
+            ]);
+        }
     }
 }

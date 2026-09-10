@@ -26,6 +26,7 @@ use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\RencanaPembelianController;
 use App\Http\Controllers\ResidentFinancialReportController;
 use App\Http\Controllers\ResidentPaymentController;
+use App\Http\Controllers\ResidentRegistrationController;
 use App\Http\Controllers\StrukturRTController;
 use App\Http\Controllers\SubscribeController;
 use App\Http\Controllers\SubscribeIncomeController;
@@ -46,6 +47,18 @@ Route::get('/', fn () => redirect()->route('login'));
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// Pendaftaran mandiri hanya untuk Kepala Keluarga yang sudah tercatat.
+Route::middleware('guest')->group(function () {
+    Route::get('/daftar-warga', [ResidentRegistrationController::class, 'identity'])->name('register.resident.identity');
+    Route::post('/daftar-warga/verifikasi', [ResidentRegistrationController::class, 'verify'])
+        ->middleware('throttle:5,1')
+        ->name('register.resident.verify');
+    Route::get('/daftar-warga/buat-akun', [ResidentRegistrationController::class, 'account'])->name('register.resident.account');
+    Route::post('/daftar-warga/buat-akun', [ResidentRegistrationController::class, 'store'])
+        ->middleware('throttle:5,1')
+        ->name('register.resident.store');
+});
 
 /*
 |--------------------------------------------------------------------------

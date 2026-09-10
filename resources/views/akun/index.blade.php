@@ -48,21 +48,45 @@
     @endif
 
     {{-- Stat Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <div class="stat-card stat-card-blue">
             <p class="text-xs font-medium text-blue-100 uppercase tracking-wider">Total Akun</p>
             <p class="text-3xl font-extrabold mt-1">{{ $totalAkun }}</p>
             <p class="text-xs text-blue-100/80 mt-0.5">Semua akun terdaftar</p>
         </div>
         <div class="stat-card stat-card-green">
-            <p class="text-xs font-medium text-green-100 uppercase tracking-wider">Ketua RT</p>
-            <p class="text-3xl font-extrabold mt-1">{{ $totalKetua }}</p>
-            <p class="text-xs text-green-100/80 mt-0.5">Dapat mengelola kependudukan</p>
+            <p class="text-xs font-medium text-green-100 uppercase tracking-wider">Kepala Keluarga</p>
+            <p class="text-3xl font-extrabold mt-1">{{ $totalKepalaKeluarga }}</p>
+            <p class="text-xs text-green-100/80 mt-0.5">Terdaftar pada data warga</p>
         </div>
         <div class="stat-card stat-card-yellow">
-            <p class="text-xs font-medium text-amber-100 uppercase tracking-wider">Pengurus RT</p>
-            <p class="text-3xl font-extrabold mt-1">{{ $totalPengurus }}</p>
-            <p class="text-xs text-amber-100/80 mt-0.5">Akses baca data kependudukan</p>
+            <p class="text-xs font-medium text-amber-100 uppercase tracking-wider">Belum Punya Akun</p>
+            <p class="text-3xl font-extrabold mt-1">{{ $kepalaTanpaAkun }}</p>
+            <p class="text-xs text-amber-100/80 mt-0.5">Kepala Keluarga belum tertaut</p>
+        </div>
+        <div class="rounded-xl bg-gradient-to-br from-violet-600 to-indigo-700 p-5 text-white shadow-lg shadow-indigo-500/15">
+            <p class="text-xs font-medium uppercase tracking-wider text-indigo-100">Pengelola RT</p>
+            <p class="mt-1 text-3xl font-extrabold">{{ $totalKetua + $totalPengurus }}</p>
+            <p class="mt-0.5 text-xs text-indigo-100/80">{{ $totalKetua }} Ketua · {{ $totalPengurus }} Pengurus</p>
+        </div>
+    </div>
+
+    {{-- Account linkage information --}}
+    <div class="overflow-hidden rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 via-white to-indigo-50 shadow-sm">
+        <div class="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex items-start gap-3">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                </span>
+                <div>
+                    <p class="text-sm font-bold text-slate-800">Mekanisme akun dan data warga</p>
+                    <p class="mt-1 max-w-3xl text-xs leading-5 text-slate-600">Kepala Keluarga dapat mendaftar sendiri memakai NIK dan Nomor KK. Akun akan otomatis menjadi Warga dan satu data Kepala Keluarga hanya dapat ditautkan ke satu akun. Role Ketua RT dan Pengurus RT ditetapkan Administrator, lalu dapat ditautkan ke data warga melalui halaman edit akun.</p>
+                </div>
+            </div>
+            <div class="shrink-0 rounded-lg border border-blue-200 bg-white px-4 py-2.5 shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Alamat pendaftaran</p>
+                <p class="mt-0.5 select-all text-xs font-bold text-blue-700">{{ url('/daftar-warga') }}</p>
+            </div>
         </div>
     </div>
 

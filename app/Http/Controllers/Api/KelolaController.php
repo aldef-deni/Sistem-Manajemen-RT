@@ -251,6 +251,14 @@ class KelolaController extends Controller
             return response()->json(['pesan' => 'Anda tidak dapat mengubah peran akun sendiri.'], 422);
         }
 
+        if ($data['peran'] === 'warga'
+            && $akun->anggota_keluarga_id
+            && ! $akun->anggotaKeluarga?->isKepalaKeluarga()) {
+            return response()->json([
+                'pesan' => 'Role Warga hanya dapat ditautkan ke data Kepala Keluarga. Ubah hubungan data warga melalui dashboard Administrator terlebih dahulu.',
+            ], 422);
+        }
+
         $akun->update(['role' => $data['peran']]);
 
         return response()->json(['pesan' => 'Peran diperbarui.']);

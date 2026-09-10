@@ -204,6 +204,29 @@ class ApiKelolaTest extends TestCase
         $this->assertSame('pengurus', $target->fresh()->role);
     }
 
+    public function test_api_tidak_dapat_mengubah_akun_anggota_non_kepala_menjadi_warga(): void
+    {
+        $anggota = \App\Models\AnggotaKeluarga::query()
+            ->where('status_hubungan', '!=', 'Kepala Keluarga')
+            ->firstOrFail();
+        $target = User::create([
+            'name' => $anggota->nama_lengkap,
+            'username' => 'pengurus-non-kepala',
+            'email' => 'pengurus.non.kepala@sistemrt.test',
+            'password' => Hash::make('rahasia123'),
+            'role' => 'pengurus',
+            'anggota_keluarga_id' => $anggota->id,
+        ]);
+
+        $this->patchJson(
+            "/api/kelola/akun/{$target->id}/peran",
+            ['peran' => 'warga'],
+            $this->sebagai('admin')
+        )->assertStatus(422);
+
+        $this->assertSame('pengurus', $target->fresh()->role);
+    }
+
     public function test_peran_administrator_tidak_dapat_diubah_dari_aplikasi(): void
     {
         $admin = User::where('role', 'admin')->firstOrFail();
