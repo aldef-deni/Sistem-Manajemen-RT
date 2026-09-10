@@ -88,7 +88,9 @@ class AuthController extends Controller
                 'kelola_operasional' => $user->canManageOperasional(),
                 'kelola_pengaturan_rt' => $user->canManagePengaturanRt(),
                 'kelola_akun' => $user->canManageAkun(),
-                'kelola_peran' => $user->canManagePeran(),
+                // Di aplikasi lapangan, Administrator dan Ketua RT sama-sama
+                // diberi akses penuh untuk mengelola akun operasional.
+                'kelola_peran' => in_array($user->role, ['admin', 'ketua'], true),
             ],
             'warga'    => $warga ? [
                 'id'      => $warga->id,

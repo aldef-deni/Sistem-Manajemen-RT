@@ -19,7 +19,7 @@ use Illuminate\Validation\Rule;
 class ChatApiController extends Controller
 {
     /** @var list<string> */
-    private const CHAT_ROLES = ['ketua', 'pengurus', 'warga'];
+    private const CHAT_ROLES = ['admin', 'ketua', 'pengurus', 'warga'];
 
     public function index(Request $request): JsonResponse
     {
@@ -29,7 +29,7 @@ class ChatApiController extends Controller
             'belum_dibaca' => ChatMessage::unreadCountFor($user),
             'percakapan' => $this->conversationList($user)->map(fn (ChatConversation $item): array => $this->conversationPayload($item, $user))->values(),
             'kontak' => User::query()->whereIn('role', self::CHAT_ROLES)->whereKeyNot($user->id)
-                ->orderByRaw("CASE role WHEN 'ketua' THEN 1 WHEN 'pengurus' THEN 2 ELSE 3 END")
+                ->orderByRaw("CASE role WHEN 'admin' THEN 1 WHEN 'ketua' THEN 2 WHEN 'pengurus' THEN 3 ELSE 4 END")
                 ->orderBy('name')->get()
                 ->map(fn (User $item): array => $this->contactPayload($item))->values(),
         ]);

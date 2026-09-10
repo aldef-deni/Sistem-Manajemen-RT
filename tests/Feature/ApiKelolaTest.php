@@ -171,7 +171,7 @@ class ApiKelolaTest extends TestCase
         $this->getJson('/api/kelola/akun', $this->sebagai('pengurus'))->assertForbidden();
     }
 
-    public function test_ketua_dapat_melihat_dan_reset_password_tapi_tidak_mengubah_peran(): void
+    public function test_ketua_dapat_melihat_reset_password_dan_mengubah_peran(): void
     {
         $target = User::where('role', 'warga')->firstOrFail();
         $token = $this->sebagai('ketua');
@@ -181,9 +181,9 @@ class ApiKelolaTest extends TestCase
             ->assertOk()
             ->assertJsonStructure(['password']);
         $this->patchJson("/api/kelola/akun/{$target->id}/peran", ['peran' => 'pengurus'], $token)
-            ->assertForbidden();
+            ->assertOk();
 
-        $this->assertSame('warga', $target->fresh()->role);
+        $this->assertSame('pengurus', $target->fresh()->role);
     }
 
     public function test_administrator_dapat_melihat_dan_mengubah_peran(): void

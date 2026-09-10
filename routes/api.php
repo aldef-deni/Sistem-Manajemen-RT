@@ -46,7 +46,7 @@ Route::middleware(['auth:sanctum', 'subscription.access'])->group(function () {
         Route::patch('verifikasi/{payment}/tolak', [SubscribeApiController::class, 'reject']);
     });
 
-    Route::middleware('role:ketua,pengurus,warga')->prefix('chat')->group(function () {
+    Route::middleware('role:admin,ketua,pengurus,warga')->prefix('chat')->group(function () {
         Route::get('/', [ChatApiController::class, 'index']);
         Route::post('pribadi', [ChatApiController::class, 'storePrivate']);
         Route::post('grup', [ChatApiController::class, 'storeGroup']);

@@ -72,7 +72,7 @@ class ApiMobileTest extends TestCase
             ->assertJsonPath('user.hak_akses.kelola_peran', true);
     }
 
-    public function test_profil_ketua_dapat_kelola_akun_tapi_tidak_kelola_peran(): void
+    public function test_profil_ketua_mendapat_akses_penuh_kelola_akun(): void
     {
         $res = $this->postJson('/api/login', [
             'username' => 'ketua',
@@ -84,7 +84,14 @@ class ApiMobileTest extends TestCase
             ->assertJsonPath('user.hak_akses.kelola_operasional', true)
             ->assertJsonPath('user.hak_akses.kelola_pengaturan_rt', true)
             ->assertJsonPath('user.hak_akses.kelola_akun', true)
-            ->assertJsonPath('user.hak_akses.kelola_peran', false);
+            ->assertJsonPath('user.hak_akses.kelola_peran', true);
+    }
+
+    public function test_administrator_dapat_membuka_api_chat(): void
+    {
+        $this->getJson('/api/chat', $this->sebagai('admin'))
+            ->assertOk()
+            ->assertJsonStructure(['belum_dibaca', 'percakapan', 'kontak']);
     }
 
     private function siapkanPassword(string $username, string $password = 'password'): string
