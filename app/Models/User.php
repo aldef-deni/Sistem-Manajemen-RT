@@ -6,15 +6,16 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -40,20 +41,20 @@ class User extends Authenticatable
     public function getRoleLabelAttribute(): string
     {
         return match ($this->role) {
-            'admin'    => 'Administrator',
-            'ketua'    => 'Ketua RT',
+            'admin' => 'Administrator',
+            'ketua' => 'Ketua RT',
             'pengurus' => 'Pengurus RT',
-            default    => 'Warga',
+            default => 'Warga',
         };
     }
 
     public function getRoleBadgeAttribute(): string
     {
         return match ($this->role) {
-            'admin'    => 'bg-blue-50 text-blue-700',
-            'ketua'    => 'bg-green-50 text-green-700',
+            'admin' => 'bg-blue-50 text-blue-700',
+            'ketua' => 'bg-green-50 text-green-700',
             'pengurus' => 'bg-amber-50 text-amber-600',
-            default    => 'bg-slate-100 text-slate-600',
+            default => 'bg-slate-100 text-slate-600',
         };
     }
 
@@ -94,6 +95,7 @@ class User extends Authenticatable
         if ($this->foto && file_exists(public_path($this->foto))) {
             return asset($this->foto);
         }
+
         return null;
     }
 
@@ -129,5 +131,17 @@ class User extends Authenticatable
     public function subscribePayments(): HasMany
     {
         return $this->hasMany(SubscribePayment::class);
+    }
+
+    public function chatConversations(): BelongsToMany
+    {
+        return $this->belongsToMany(ChatConversation::class, 'chat_participants', 'user_id', 'conversation_id')
+            ->withPivot(['role', 'joined_at', 'last_read_message_id'])
+            ->withTimestamps();
+    }
+
+    public function chatMessages(): HasMany
+    {
+        return $this->hasMany(ChatMessage::class);
     }
 }

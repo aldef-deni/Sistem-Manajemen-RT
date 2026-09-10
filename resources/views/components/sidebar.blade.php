@@ -8,6 +8,12 @@
             'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg>',
         ],
         [
+            'label' => 'Chat Warga',
+            'route' => 'chat.index',
+            'badge' => $chatUnreadCount ?? 0,
+            'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72A7.49 7.49 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>',
+        ],
+        [
             'group' => 'Kependudukan',
             'items' => [
                 ['label' => 'Data Warga', 'route' => 'data-warga', 'icon' => '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>'],
@@ -281,7 +287,12 @@
                 <a href="{{ route($item['route']) }}"
                    class="menu-item {{ $isActive($item['route'], $currentRoute) ? 'active' : '' }}">
                     {!! $item['icon'] !!}
-                    <span>{{ $item['label'] }}</span>
+                    <span class="min-w-0 flex-1 truncate">{{ $item['label'] }}</span>
+                    @if(($item['badge'] ?? 0) > 0)
+                        <span class="ml-auto min-w-5 shrink-0 rounded-full bg-rose-500 px-1.5 py-0.5 text-center text-[10px] font-bold leading-4 text-white shadow-sm">
+                            {{ $item['badge'] > 99 ? '99+' : $item['badge'] }}
+                        </span>
+                    @endif
                 </a>
             @elseif(isset($item['group']))
                 @if($item['locked'] ?? false)

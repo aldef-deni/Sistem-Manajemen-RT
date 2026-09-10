@@ -5,6 +5,7 @@ use App\Http\Controllers\ArisanController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BantuanSosialController;
 use App\Http\Controllers\BarangController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataWargaController;
 use App\Http\Controllers\IuranWargaController;
@@ -87,6 +88,18 @@ Route::middleware(['auth', 'subscription.access'])->group(function () {
     Route::post('profil-saya/foto', [ProfilController::class, 'updateFoto'])->name('profil.foto');
     Route::delete('profil-saya/foto', [ProfilController::class, 'hapusFoto'])->name('profil.foto.hapus');
     Route::put('profil-saya/password', [ProfilController::class, 'updatePassword'])->name('profil.password');
+
+    // Chat internal RT untuk Warga, Pengurus RT, dan Ketua RT.
+    Route::middleware('role:ketua,pengurus,warga')->prefix('chat')->name('chat.')->group(function () {
+        Route::get('/', [ChatController::class, 'index'])->name('index');
+        Route::post('private', [ChatController::class, 'storePrivate'])->name('private.store');
+        Route::post('groups', [ChatController::class, 'storeGroup'])->name('groups.store');
+        Route::get('{conversation}', [ChatController::class, 'show'])->name('show');
+        Route::put('{conversation}/group', [ChatController::class, 'updateGroup'])->name('groups.update');
+        Route::post('{conversation}/leave', [ChatController::class, 'leave'])->name('leave');
+        Route::get('{conversation}/messages', [ChatController::class, 'messages'])->name('messages.index');
+        Route::post('{conversation}/messages', [ChatController::class, 'storeMessage'])->name('messages.store');
+    });
 
     // Informasi warga — baca saja
     Route::get('kalender', [KalenderController::class, 'index'])->name('kalender.index');

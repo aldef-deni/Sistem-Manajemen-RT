@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\ChatMessage;
 use App\Models\SubscribePayment;
 use App\Support\SubscriptionAccess;
 use Illuminate\Support\Facades\Schema;
@@ -27,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
             $user = auth()->user();
             $subscriptionStatus = null;
             $subscriptionPendingCount = 0;
+            $chatUnreadCount = 0;
 
             if ($user && Schema::hasTable('setting_rt') && Schema::hasTable('subscribe_payments')) {
                 $subscriptionStatus = app(SubscriptionAccess::class)->status($user);
@@ -38,7 +40,16 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
 
-            $view->with(compact('subscriptionStatus', 'subscriptionPendingCount'));
+            if (
+                $user
+                && in_array($user->role, ['ketua', 'pengurus', 'warga'], true)
+                && Schema::hasTable('chat_messages')
+                && Schema::hasTable('chat_participants')
+            ) {
+                $chatUnreadCount = ChatMessage::unreadCountFor($user);
+            }
+
+            $view->with(compact('subscriptionStatus', 'subscriptionPendingCount', 'chatUnreadCount'));
         });
     }
 }
