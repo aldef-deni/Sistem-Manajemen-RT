@@ -114,12 +114,36 @@
                     </div>
                     <div class="sm:col-span-2">
                         <label for="proof" class="mb-2 block text-sm font-semibold text-slate-700">Bukti Pembayaran</label>
-                        <label class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-5 py-8 text-center transition hover:border-blue-400 hover:bg-blue-50/50">
-                            <svg class="h-8 w-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5.002 5.002 0 0115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                            <span class="mt-3 text-sm font-bold text-slate-700">Pilih JPG, PNG, WEBP, atau PDF</span>
-                            <span id="proof-file-name" class="mt-1 text-xs text-slate-400">Maksimal 5 MB</span>
+                        <label id="proof-dropzone" class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-5 py-8 text-center transition hover:border-blue-400 hover:bg-blue-50/50">
+                            <span id="proof-empty-state" class="flex flex-col items-center">
+                                <svg class="h-8 w-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5.002 5.002 0 0115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                <span class="mt-3 text-sm font-bold text-slate-700">Pilih JPG, PNG, WEBP, atau PDF</span>
+                                <span id="proof-file-name" class="mt-1 text-xs text-slate-400">Maksimal 5 MB</span>
+                            </span>
+
+                            <span id="proof-preview" class="hidden w-full" aria-live="polite">
+                                <span class="relative mx-auto block max-w-sm overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                    <img id="proof-preview-image" src="" alt="Preview bukti pembayaran" class="hidden h-48 w-full bg-slate-100 object-contain p-2">
+                                    <span id="proof-preview-pdf" class="hidden h-48 flex-col items-center justify-center bg-gradient-to-br from-red-50 to-white text-red-600">
+                                        <span class="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-100">
+                                            <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3h7l5 5v13H7V3zm7 0v6h5M10 14h4m-4 3h4"/></svg>
+                                        </span>
+                                        <span class="mt-3 text-sm font-extrabold">Dokumen PDF</span>
+                                    </span>
+                                    <span class="absolute left-3 top-3 rounded-full bg-slate-950/75 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">Preview</span>
+                                </span>
+
+                                <span class="mx-auto mt-3 flex max-w-sm items-center justify-between gap-3 rounded-xl bg-blue-50 px-3 py-2.5 text-left">
+                                    <span class="min-w-0">
+                                        <span id="proof-preview-name" class="block truncate text-sm font-bold text-slate-800"></span>
+                                        <span id="proof-preview-meta" class="mt-0.5 block text-xs text-slate-500"></span>
+                                    </span>
+                                    <span class="shrink-0 text-xs font-bold text-blue-600">Ganti file</span>
+                                </span>
+                            </span>
                             <input id="proof" name="proof" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" required class="sr-only">
                         </label>
+                        <p id="proof-preview-error" role="alert" class="mt-2 hidden text-xs font-semibold text-red-600"></p>
                     </div>
                     <div class="sm:col-span-2">
                         <label for="notes" class="mb-2 block text-sm font-semibold text-slate-700">Catatan <span class="font-normal text-slate-400">(opsional)</span></label>
@@ -167,9 +191,112 @@
 
 @push('scripts')
 <script>
-    document.getElementById('proof')?.addEventListener('change', function () {
-        const label = document.getElementById('proof-file-name');
-        if (label && this.files.length) label.textContent = this.files[0].name;
-    });
+    (() => {
+        const input = document.getElementById('proof');
+        if (!input) return;
+
+        const dropzone = document.getElementById('proof-dropzone');
+        const emptyState = document.getElementById('proof-empty-state');
+        const preview = document.getElementById('proof-preview');
+        const previewImage = document.getElementById('proof-preview-image');
+        const previewPdf = document.getElementById('proof-preview-pdf');
+        const previewName = document.getElementById('proof-preview-name');
+        const previewMeta = document.getElementById('proof-preview-meta');
+        const error = document.getElementById('proof-preview-error');
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+        const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'pdf'];
+        const maximumSize = 5 * 1024 * 1024;
+        let previewUrl = null;
+
+        const revokePreviewUrl = () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+                previewUrl = null;
+            }
+        };
+
+        const formatFileSize = (bytes) => {
+            if (bytes < 1024) return `${bytes} B`;
+            if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+            return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+        };
+
+        const resetPreview = () => {
+            previewImage.onload = null;
+            previewImage.onerror = null;
+            revokePreviewUrl();
+            previewImage.removeAttribute('src');
+            previewImage.classList.add('hidden');
+            previewPdf.classList.add('hidden');
+            previewPdf.classList.remove('flex');
+            preview.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+            dropzone.classList.remove('border-blue-400', 'bg-blue-50/50');
+            dropzone.removeAttribute('aria-invalid');
+        };
+
+        const showError = (message) => {
+            error.textContent = message;
+            error.classList.remove('hidden');
+            dropzone.setAttribute('aria-invalid', 'true');
+        };
+
+        input.addEventListener('change', () => {
+            resetPreview();
+            error.textContent = '';
+            error.classList.add('hidden');
+
+            const file = input.files?.[0];
+            if (!file) return;
+
+            const extension = file.name.split('.').pop()?.toLowerCase() ?? '';
+            const isAllowedType = allowedTypes.includes(file.type) || (!file.type && allowedExtensions.includes(extension));
+
+            if (!isAllowedType || !allowedExtensions.includes(extension)) {
+                input.value = '';
+                showError('Format file tidak didukung. Gunakan JPG, PNG, WEBP, atau PDF.');
+                return;
+            }
+
+            if (file.size > maximumSize) {
+                input.value = '';
+                showError('Ukuran file melebihi batas maksimal 5 MB.');
+                return;
+            }
+
+            const isPdf = file.type === 'application/pdf' || extension === 'pdf';
+            const typeLabel = isPdf ? 'PDF' : extension.toUpperCase();
+
+            emptyState.classList.add('hidden');
+            preview.classList.remove('hidden');
+            previewName.textContent = file.name;
+            previewMeta.textContent = `${typeLabel} • ${formatFileSize(file.size)}`;
+            dropzone.classList.add('border-blue-400', 'bg-blue-50/50');
+
+            if (isPdf) {
+                previewPdf.classList.remove('hidden');
+                previewPdf.classList.add('flex');
+                return;
+            }
+
+            const currentPreviewUrl = URL.createObjectURL(file);
+            previewUrl = currentPreviewUrl;
+            previewImage.src = currentPreviewUrl;
+            previewImage.classList.remove('hidden');
+            previewImage.onload = () => {
+                if (previewUrl !== currentPreviewUrl) return;
+                previewImage.onload = null;
+                previewImage.onerror = null;
+            };
+            previewImage.onerror = () => {
+                if (previewUrl !== currentPreviewUrl) return;
+                input.value = '';
+                resetPreview();
+                showError('Gambar tidak dapat ditampilkan. Pilih file gambar lain yang valid.');
+            };
+        });
+
+        window.addEventListener('beforeunload', revokePreviewUrl);
+    })();
 </script>
 @endpush

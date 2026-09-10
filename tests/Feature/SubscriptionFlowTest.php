@@ -117,6 +117,20 @@ class SubscriptionFlowTest extends TestCase
             ->assertSee('Rp 25.000');
     }
 
+    public function test_form_pembayaran_menyediakan_preview_bukti_sebelum_dikirim(): void
+    {
+        $this->aktifkanUntuk(['warga']);
+
+        $this->actingAs($this->sebagai('warga'))
+            ->get(route('subscribe.payment.index'))
+            ->assertOk()
+            ->assertSee('Preview bukti pembayaran')
+            ->assertSee('id="proof-preview-image"', false)
+            ->assertSee('id="proof-preview-pdf"', false)
+            ->assertSee('URL.createObjectURL', false)
+            ->assertSee('Ganti file');
+    }
+
     public function test_hanya_admin_dapat_melihat_bukti_dan_memverifikasi_pembayaran(): void
     {
         $this->aktifkanUntuk(['warga']);
