@@ -72,7 +72,6 @@ class PengaduanController extends Controller
         Notification::send(
             User::query()
                 ->whereIn('role', ['admin', 'ketua', 'pengurus'])
-                ->where('id', '!=', Auth::id())
                 ->get(),
             new SystemNotification(
                 category: 'complaint',
@@ -103,17 +102,12 @@ class PengaduanController extends Controller
 
         $pengaduan->update($validated);
 
-        if ($pengaduan->user_id !== Auth::id()) {
-            $pengaduan->user?->notify(new SystemNotification(
-                category: 'complaint',
-                title: 'Status pengaduan diperbarui',
-                message: 'Pengaduan '.$pengaduan->kode_tiket.' kini berstatus '.ucfirst($pengaduan->status).'.',
-                routeName: 'pengaduan.show',
-                routeParams: ['pengaduan' => $pengaduan->id],
-                tone: $pengaduan->status === 'selesai' ? 'emerald' : ($pengaduan->status === 'ditolak' ? 'rose' : 'blue'),
-                context: ['pengaduan_id' => $pengaduan->id],
-            ));
-        }
+        $this->notifyStakeholders(
+            $pengaduan,
+            'Status pengaduan diperbarui',
+            'Pengaduan '.$pengaduan->kode_tiket.' kini berstatus '.ucfirst($pengaduan->status).'.',
+            $pengaduan->status === 'selesai' ? 'emerald' : ($pengaduan->status === 'ditolak' ? 'rose' : 'blue'),
+        );
 
         return redirect()->route('pengaduan.show', $pengaduan)->with('success', 'Status pengaduan berhasil diupdate!');
     }
@@ -136,24 +130,32 @@ class PengaduanController extends Controller
             'tanggal_balas' => now(),
         ]);
 
-        if ($pengaduan->user_id !== Auth::id()) {
-            $pengaduan->user?->notify(new SystemNotification(
-                category: 'complaint',
-                title: 'Balasan baru untuk pengaduan',
-                message: Str::limit($validated['pesan'], 140),
-                routeName: 'pengaduan.show',
-                routeParams: ['pengaduan' => $pengaduan->id],
-                tone: 'blue',
-                context: ['pengaduan_id' => $pengaduan->id],
-            ));
-        }
+        $this->notifyStakeholders(
+            $pengaduan,
+            'Balasan baru untuk pengaduan',
+            Str::limit($validated['pesan'], 140),
+            'blue',
+        );
 
         return redirect()->route('pengaduan.show', $pengaduan)->with('success', 'Balasan berhasil dikirim!');
     }
 
     public function destroy(Pengaduan $pengaduan)
     {
+        $ticket = $pengaduan->kode_tiket;
         $pengaduan->delete();
+
+        Notification::send(
+            User::query()->whereIn('role', ['admin', 'ketua'])->get(),
+            new SystemNotification(
+                category: 'complaint',
+                title: 'Pengaduan dihapus',
+                message: 'Pengaduan '.$ticket.' telah dihapus oleh '.Auth::user()->name.'.',
+                routeName: 'pengaduan.index',
+                tone: 'rose',
+                context: ['action' => 'dihapus'],
+            )
+        );
 
         return redirect()->route('pengaduan.index')->with('success', 'Pengaduan berhasil dihapus!');
     }
@@ -164,5 +166,25 @@ class PengaduanController extends Controller
         $last = Pengaduan::where('kode_tiket', 'like', "TKT{$date}%")->count() + 1;
 
         return 'TKT'.$date.str_pad($last, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function notifyStakeholders(Pengaduan $pengaduan, string $title, string $message, string $tone): void
+    {
+        Notification::send(
+            User::query()
+                ->where(fn ($query) => $query
+                    ->whereIn('role', ['admin', 'ketua'])
+                    ->orWhere('id', $pengaduan->user_id))
+                ->get(),
+            new SystemNotification(
+                category: 'complaint',
+                title: $title,
+                message: $message,
+                routeName: 'pengaduan.show',
+                routeParams: ['pengaduan' => $pengaduan->id],
+                tone: $tone,
+                context: ['pengaduan_id' => $pengaduan->id],
+            )
+        );
     }
 }

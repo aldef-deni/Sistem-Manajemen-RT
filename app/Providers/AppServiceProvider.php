@@ -2,8 +2,17 @@
 
 namespace App\Providers;
 
+use App\Models\AnggotaKeluarga;
 use App\Models\ChatMessage;
+use App\Models\IuranWarga;
+use App\Models\JadwalKegiatan;
+use App\Models\KartuKeluarga;
+use App\Models\KegiatanRT;
 use App\Models\SubscribePayment;
+use App\Models\TransaksiKas;
+use App\Models\UMKM;
+use App\Models\User;
+use App\Observers\ManagementAuditObserver;
 use App\Support\SubscriptionAccess;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
@@ -24,6 +33,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        foreach ([
+            AnggotaKeluarga::class,
+            KartuKeluarga::class,
+            IuranWarga::class,
+            TransaksiKas::class,
+            KegiatanRT::class,
+            JadwalKegiatan::class,
+            UMKM::class,
+            User::class,
+        ] as $model) {
+            $model::observe(ManagementAuditObserver::class);
+        }
+
         View::composer('layouts.app', function ($view): void {
             $user = auth()->user();
             $subscriptionStatus = null;

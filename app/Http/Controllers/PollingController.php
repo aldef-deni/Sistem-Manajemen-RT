@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Polling;
 use App\Models\PollingVote;
+use App\Models\User;
+use App\Notifications\SystemNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 
 class PollingController extends Controller
 {
@@ -54,7 +58,13 @@ class PollingController extends Controller
         $validated['anonim'] = $request->boolean('anonim');
         $validated['status'] = 'aktif';
 
-        Polling::create($validated);
+        $polling = Polling::create($validated);
+        $this->notifyUsers(
+            'Polling baru',
+            $polling->judul.' — '.Str::limit(strip_tags((string) $polling->deskripsi), 110),
+            $polling,
+            false,
+        );
 
         return redirect()->route('polling.index')->with('success', 'Polling berhasil dibuat!');
     }
@@ -92,6 +102,7 @@ class PollingController extends Controller
         $validated['anonim'] = $request->boolean('anonim');
 
         $polling->update($validated);
+        $this->notifyUsers('Polling diperbarui', 'Polling “'.$polling->judul.'” telah diperbarui.', $polling);
 
         return redirect()->route('polling.show', $polling)->with('success', 'Polling berhasil diupdate!');
     }
@@ -128,18 +139,38 @@ class PollingController extends Controller
     public function close(Polling $polling)
     {
         $polling->update(['status' => 'ditutup']);
+        $this->notifyUsers('Polling ditutup', 'Polling “'.$polling->judul.'” telah ditutup.', $polling);
         return back()->with('success', 'Polling berhasil ditutup!');
     }
 
     public function complete(Polling $polling)
     {
         $polling->update(['status' => 'selesai']);
+        $this->notifyUsers('Polling selesai', 'Hasil polling “'.$polling->judul.'” telah tersedia.', $polling);
         return back()->with('success', 'Polling ditandai selesai!');
     }
 
     public function destroy(Polling $polling)
     {
+        $judul = $polling->judul;
         $polling->delete();
+        $this->notifyUsers('Polling dihapus', 'Polling “'.$judul.'” dihapus oleh '.Auth::user()->name.'.', null, true);
         return redirect()->route('polling.index')->with('success', 'Polling berhasil dihapus!');
+    }
+
+    private function notifyUsers(string $title, string $message, ?Polling $polling, bool $managersOnly = false): void
+    {
+        Notification::send(
+            User::query()->when($managersOnly, fn ($query) => $query->whereIn('role', ['admin', 'ketua']))->get(),
+            new SystemNotification(
+                category: 'polling',
+                title: $title,
+                message: $message,
+                routeName: $polling ? 'polling.show' : 'polling.index',
+                routeParams: $polling ? ['polling' => $polling->id] : [],
+                tone: $polling?->status === 'aktif' ? 'emerald' : 'blue',
+                context: $polling ? ['polling_id' => $polling->id] : [],
+            )
+        );
     }
 }

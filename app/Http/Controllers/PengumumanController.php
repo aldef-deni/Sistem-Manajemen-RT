@@ -71,6 +71,8 @@ class PengumumanController extends Controller
 
         if ($pengumuman->status === 'publish') {
             $this->notifyAnnouncement($pengumuman);
+        } else {
+            $this->notifyManagers('Draft pengumuman dibuat', 'Draft “'.$pengumuman->judul.'” dibuat oleh '.auth()->user()->name.'.', $pengumuman);
         }
 
         return redirect()->route('pengumuman.index')->with('success', 'Pengumuman berhasil dibuat!');
@@ -121,8 +123,10 @@ class PengumumanController extends Controller
 
         $pengumuman->update($validated);
 
-        if (! $wasPublished && $pengumuman->status === 'publish') {
-            $this->notifyAnnouncement($pengumuman);
+        if ($pengumuman->status === 'publish') {
+            $this->notifyAnnouncement($pengumuman, $wasPublished ? 'Pengumuman diperbarui' : null);
+        } else {
+            $this->notifyManagers('Pengumuman diperbarui', 'Pengumuman “'.$pengumuman->judul.'” diperbarui oleh '.auth()->user()->name.'.', $pengumuman);
         }
 
         return redirect()->route('pengumuman.index')->with('success', 'Pengumuman berhasil diperbarui!');
@@ -131,33 +135,50 @@ class PengumumanController extends Controller
     public function destroy($id)
     {
         $pengumuman = Pengumuman::findOrFail($id);
+        $judul = $pengumuman->judul;
         $pengumuman->delete();
+        $this->notifyManagers('Pengumuman dihapus', 'Pengumuman “'.$judul.'” dihapus oleh '.auth()->user()->name.'.');
 
         return redirect()->route('pengumuman.index')->with('success', 'Pengumuman berhasil dihapus!');
     }
 
-    private function notifyAnnouncement(Pengumuman $pengumuman): void
+    private function notifyAnnouncement(Pengumuman $pengumuman, ?string $title = null): void
     {
         $recipients = User::query()
-            ->where('id', '!=', auth()->id())
             ->when(
                 in_array($pengumuman->target, ['rt', 'rw'], true),
                 fn ($query) => $query->whereIn('role', ['admin', 'ketua', 'pengurus'])
             )
             ->when(
                 in_array($pengumuman->target, ['per_blok', 'warga_tertentu'], true),
-                fn ($query) => $query->where('role', 'warga')
+                fn ($query) => $query->whereIn('role', ['admin', 'ketua', 'warga'])
             )
             ->get();
 
         Notification::send($recipients, new SystemNotification(
             category: 'announcement',
-            title: $pengumuman->kategori === 'Darurat' ? 'Pengumuman darurat' : 'Pengumuman baru',
+            title: $title ?? ($pengumuman->kategori === 'Darurat' ? 'Pengumuman darurat' : 'Pengumuman baru'),
             message: $pengumuman->judul.' — '.Str::limit(strip_tags($pengumuman->isi), 110),
             routeName: 'pengumuman.show',
             routeParams: ['pengumuman' => $pengumuman->id],
             tone: $pengumuman->kategori === 'Darurat' ? 'rose' : 'blue',
             context: ['pengumuman_id' => $pengumuman->id],
         ));
+    }
+
+    private function notifyManagers(string $title, string $message, ?Pengumuman $pengumuman = null): void
+    {
+        Notification::send(
+            User::query()->whereIn('role', ['admin', 'ketua'])->get(),
+            new SystemNotification(
+                category: 'announcement',
+                title: $title,
+                message: $message,
+                routeName: $pengumuman ? 'pengumuman.show' : 'pengumuman.index',
+                routeParams: $pengumuman ? ['pengumuman' => $pengumuman->id] : [],
+                tone: 'blue',
+                context: $pengumuman ? ['pengumuman_id' => $pengumuman->id] : [],
+            )
+        );
     }
 }

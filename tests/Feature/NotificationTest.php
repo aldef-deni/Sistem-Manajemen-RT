@@ -120,4 +120,41 @@ class NotificationTest extends TestCase
         $this->assertSame($conversation->id, $notification->data['conversation_id']);
         $this->assertStringContainsString('jadwal ronda', $notification->data['message']);
     }
+
+    public function test_pengumuman_dan_polling_masuk_ke_notifikasi_admin_ketua_dan_warga(): void
+    {
+        $admin = $this->user('admin', 'Admin Notifikasi Konten');
+        $ketua = $this->user('ketua', 'Ketua Notifikasi Konten');
+        $warga = $this->user('warga', 'Warga Notifikasi Konten');
+
+        $this->actingAs($admin)->post(route('pengumuman.store'), [
+            'judul' => 'Jadwal kerja bakti diperbarui',
+            'kategori' => 'Kegiatan',
+            'target' => 'semua',
+            'isi' => 'Kerja bakti dimulai pukul tujuh pagi.',
+            'tanggal_publish' => now()->toDateString(),
+            'status' => 'publish',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        foreach ([$admin, $ketua, $warga] as $recipient) {
+            $notification = $recipient->notifications()->latest()->first();
+            $this->assertNotNull($notification);
+            $this->assertSame('announcement', $notification->data['category']);
+        }
+
+        $this->actingAs($admin)->post(route('polling.store'), [
+            'judul' => 'Pilihan jadwal ronda',
+            'deskripsi' => 'Pilih jadwal yang paling sesuai.',
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addDays(2)->toDateString(),
+            'opsi' => ['Jumat malam', 'Sabtu malam'],
+            'tampilkan_hasil' => true,
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        foreach ([$admin, $ketua, $warga] as $recipient) {
+            $notification = $recipient->notifications()->where('data->category', 'polling')->first();
+            $this->assertNotNull($notification);
+            $this->assertSame('polling', $notification->data['category']);
+        }
+    }
 }

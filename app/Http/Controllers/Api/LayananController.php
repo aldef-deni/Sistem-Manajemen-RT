@@ -8,9 +8,12 @@ use App\Models\Pengaduan;
 use App\Models\Polling;
 use App\Models\PollingVote;
 use App\Models\Tabungan;
+use App\Models\User;
+use App\Notifications\SystemNotification;
 use App\Support\SafeUpload;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 /**
@@ -148,6 +151,19 @@ class LayananController extends Controller
         }
 
         $pengaduan = Pengaduan::create($data);
+
+        Notification::send(
+            User::query()->whereIn('role', ['admin', 'ketua', 'pengurus'])->get(),
+            new SystemNotification(
+                category: 'complaint',
+                title: 'Pengaduan warga baru',
+                message: $request->user()->name.' mengirim pengaduan: '.$pengaduan->judul,
+                routeName: 'pengaduan.show',
+                routeParams: ['pengaduan' => $pengaduan->id],
+                tone: 'amber',
+                context: ['pengaduan_id' => $pengaduan->id],
+            )
+        );
 
         return response()->json([
             'pesan'      => 'Pengaduan terkirim.',

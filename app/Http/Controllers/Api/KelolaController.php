@@ -10,10 +10,13 @@ use App\Models\PengaduanBalasan;
 use App\Models\RekeningKas;
 use App\Models\TransaksiKas;
 use App\Models\User;
+use App\Notifications\SystemNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 /**
  * Bagian aplikasi yang hanya dibuka pengurus ke atas.
@@ -57,11 +60,18 @@ class KelolaController extends Controller
 
     public function warga(Request $request): JsonResponse
     {
+        $filter = $request->validate([
+            'cari' => ['nullable', 'string', 'max:100'],
+            'hubungan' => ['nullable', Rule::in(['Kepala Keluarga', 'Istri', 'Anak'])],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+
         $data = AnggotaKeluarga::with('kartuKeluarga')
-            ->when($request->filled('cari'), function ($q) use ($request) {
-                $kata = $request->cari;
+            ->when(! empty($filter['cari']), function ($q) use ($filter) {
+                $kata = trim($filter['cari']);
                 $q->where(fn ($w) => $w->where('nama_lengkap', 'like', "%{$kata}%")->orWhere('nik', 'like', "%{$kata}%"));
             })
+            ->when(! empty($filter['hubungan']), fn ($q) => $q->where('status_hubungan', $filter['hubungan']))
             ->orderBy('nama_lengkap')
             ->paginate(20);
 
@@ -87,6 +97,7 @@ class KelolaController extends Controller
                 'saat_ini' => $data->currentPage(),
                 'terakhir' => $data->lastPage(),
                 'total'    => $data->total(),
+                'per_halaman' => $data->perPage(),
             ],
         ]);
     }
@@ -187,6 +198,13 @@ class KelolaController extends Controller
 
         $pengaduan->update($data);
 
+        $this->notifyComplaintStakeholders(
+            $pengaduan,
+            'Status pengaduan diperbarui',
+            'Pengaduan '.$pengaduan->kode_tiket.' kini berstatus '.ucfirst($pengaduan->status).'.',
+            $pengaduan->status === 'selesai' ? 'emerald' : ($pengaduan->status === 'ditolak' ? 'rose' : 'blue'),
+        );
+
         return response()->json(['pesan' => 'Status pengaduan diperbarui.']);
     }
 
@@ -207,6 +225,13 @@ class KelolaController extends Controller
             'dibalas_oleh'  => $request->user()->name,
             'tanggal_balas' => now(),
         ]);
+
+        $this->notifyComplaintStakeholders(
+            $pengaduan,
+            'Balasan baru untuk pengaduan',
+            Str::limit($data['pesan'], 140),
+            'blue',
+        );
 
         return response()->json(['pesan' => 'Balasan terkirim.'], 201);
     }
@@ -302,5 +327,25 @@ class KelolaController extends Controller
                  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
         return $nama[$bulan] ?? '-';
+    }
+
+    private function notifyComplaintStakeholders(Pengaduan $pengaduan, string $title, string $message, string $tone): void
+    {
+        Notification::send(
+            User::query()
+                ->where(fn ($query) => $query
+                    ->whereIn('role', ['admin', 'ketua'])
+                    ->orWhere('id', $pengaduan->user_id))
+                ->get(),
+            new SystemNotification(
+                category: 'complaint',
+                title: $title,
+                message: $message,
+                routeName: 'pengaduan.show',
+                routeParams: ['pengaduan' => $pengaduan->id],
+                tone: $tone,
+                context: ['pengaduan_id' => $pengaduan->id],
+            )
+        );
     }
 }

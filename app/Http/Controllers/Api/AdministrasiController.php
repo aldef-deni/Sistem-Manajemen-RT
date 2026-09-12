@@ -11,11 +11,13 @@ use App\Models\Pengaduan;
 use App\Models\RekeningKas;
 use App\Models\TransaksiKas;
 use App\Models\User;
+use App\Notifications\SystemNotification;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -266,7 +268,20 @@ class AdministrasiController extends Controller
 
     public function destroyPengaduan(Pengaduan $pengaduan): JsonResponse
     {
+        $ticket = $pengaduan->kode_tiket;
         $pengaduan->delete();
+
+        Notification::send(
+            User::query()->whereIn('role', ['admin', 'ketua'])->get(),
+            new SystemNotification(
+                category: 'complaint',
+                title: 'Pengaduan dihapus',
+                message: 'Pengaduan '.$ticket.' telah dihapus oleh '.auth()->user()->name.'.',
+                routeName: 'pengaduan.index',
+                tone: 'rose',
+                context: ['action' => 'dihapus'],
+            )
+        );
 
         return response()->json(['pesan' => 'Pengaduan berhasil dihapus.']);
     }

@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\AnggotaKeluarga;
 use App\Models\IuranWarga;
+use App\Models\KartuKeluarga;
 use App\Models\Pengaduan;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -90,6 +92,57 @@ class ApiKelolaTest extends TestCase
 
         $hasil = $this->getJson('/api/kelola/warga?cari=' . urlencode(substr($nama, 0, 4)), $token)->assertOk();
         $this->assertGreaterThan(0, count($hasil->json('data')));
+    }
+
+    public function test_daftar_warga_maksimal_dua_puluh_dan_dapat_difilter_hubungan(): void
+    {
+        $kk = KartuKeluarga::firstOrFail();
+        foreach (range(1, 25) as $nomor) {
+            AnggotaKeluarga::create([
+                'kartu_keluarga_id' => $kk->id,
+                'nik' => '999900000000'.str_pad((string) $nomor, 4, '0', STR_PAD_LEFT),
+                'nama_lengkap' => 'Anak Pagination '.str_pad((string) $nomor, 2, '0', STR_PAD_LEFT),
+                'jenis_kelamin' => $nomor % 2 === 0 ? 'L' : 'P',
+                'status_hubungan' => 'Anak',
+                'domisili' => 'Tetap',
+                'role' => 'Warga',
+            ]);
+        }
+
+        $token = $this->sebagai('pengurus');
+        $halamanSatu = $this->getJson('/api/kelola/warga?hubungan=Anak&page=1', $token)
+            ->assertOk()
+            ->assertJsonPath('halaman.per_halaman', 20);
+
+        $this->assertCount(20, $halamanSatu->json('data'));
+        $this->assertTrue(collect($halamanSatu->json('data'))->every(
+            fn (array $warga): bool => $warga['status_hubungan'] === 'Anak'
+        ));
+
+        $halamanDua = $this->getJson('/api/kelola/warga?hubungan=Anak&page=2', $token)->assertOk();
+        $this->assertGreaterThan(0, count($halamanDua->json('data')));
+        $this->assertLessThanOrEqual(20, count($halamanDua->json('data')));
+    }
+
+    public function test_perubahan_warga_dari_aplikasi_masuk_ke_notifikasi_admin_dan_ketua(): void
+    {
+        $kk = KartuKeluarga::firstOrFail();
+
+        $this->postJson('/api/kelola/warga', [
+            'kartu_keluarga_id' => $kk->id,
+            'nik' => '9988776655443322',
+            'nama_lengkap' => 'Warga Baru Notifikasi',
+            'jenis_kelamin' => 'L',
+            'status_hubungan' => 'Anak',
+            'domisili' => 'Tetap',
+            'role_keluarga' => 'Warga',
+        ], $this->sebagai('admin'))->assertCreated();
+
+        foreach (User::query()->whereIn('role', ['admin', 'ketua'])->get() as $pengurus) {
+            $notifikasi = $pengurus->notifications()->where('data->category', 'resident')->latest()->first();
+            $this->assertNotNull($notifikasi, 'Administrator dan Ketua RT harus menerima notifikasi perubahan warga.');
+            $this->assertStringContainsString('Warga Baru Notifikasi', $notifikasi->data['message']);
+        }
     }
 
     public function test_kas_menampilkan_saldo_dan_transaksi(): void
